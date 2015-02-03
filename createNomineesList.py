@@ -22,12 +22,11 @@ for cat in content.findAll('div', attrs={'class': re.compile('has-winner')}):
 	winner = None;
 	for nominee in cat.findAll('div', attrs={'class':'views-info'}):
 		name = nominee.find('div', attrs={'class':re.compile('views-field')});
-		notes = cat.find('div', attrs={'class':re.compile('views-field-nominee-notes')});
+		notes = nominee.find('div', attrs={'class':re.compile('views-field-nominee-notes')});
 		if notes is not None:
 			field = {"Person" : name.text, "Notes" : notes.text.translate({ord(c): None for c in ['(',')']})};
 		else:
 			field = name.text;
-
 		if re.search('gold', name['class']) is not None:
 			winner = field;
 
