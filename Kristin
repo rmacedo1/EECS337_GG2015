@@ -82,7 +82,7 @@ bestPictureDrama = ["Boyhood", "Foxcatcher", "The Imitation Game", "Selma", "The
 
 bestActorMusicalComedy = ["Ralph Fiennes", "Michael Keaton", "Bill Murray", "Joaquin Phoenix", "Christoph Waltz"]
 bestActressMusicalComedy = ["Amy Adams", "Emily Blunt", "Helen Mirren", "Julianne Moore", "Quvenzhane Wallis"]
-bestPictureComedy = ["Birdman", "The Grand Budapest Hotel", "Into the Woods", "Pride", "St. Vincent"]
+bestPictureMusicalComedy = ["Birdman", "The Grand Budapest Hotel", "Into the Woods", "Pride", "St. Vincent"]
 
 # for word in bestActorDrama:
 #     if "Eddie" in word:
@@ -95,6 +95,26 @@ length = 0
 for word in sorted(dictionary, key=dictionary.get, reverse=True):
 	if (length < 100):
 		for name in bestActorDrama:
+			if word in name:
+				print name
+				length = 100
+		length += 1
+
+
+dictionary1 = dict()
+
+for tweet in bestMPdramaTweets:
+	for word in tweet:
+		if word[0].isupper():
+			if word in dictionary1:
+				dictionary1[word] += 1
+			else:
+				dictionary1[word] = 1
+
+length = 0
+for word in sorted(dictionary1, key=dictionary1.get, reverse=True):
+	if (length < 100):
+		for name in bestActorMusicalComedy:
 			if word in name:
 				print name
 				length = 100
