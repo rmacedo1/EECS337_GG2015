@@ -39,6 +39,16 @@ for tweet in noPredictionTweets:
 	if any([x in tweet for x in ["wins", "won", "win", "winning"]]):
 		winTweets.append(tweet)
 
+bestMusicalComedyTweets = []
+for tweet in winTweets:
+	if (any([x in tweet for x in ["best", "Best"]]) and any([x in tweet for x in ["musical", "Musical", "comedy", "Comedy"]])):
+		bestMusicalComedyTweets.append(tweet)
+
+bestMPmusicalComedyTweets = []
+for tweet in bestMusicalComedyTweets:
+	if any([x in tweet for x in ["motion", "Motion", "picture", "Picture"]]):
+		bestMPmusicalComedyTweets.append(tweet)
+
 bestDramaTweets = []
 for tweet in winTweets:
 	if (any([x in tweet for x in ["best", "Best"]]) and any([x in tweet for x in ["drama", "Drama"]])):
@@ -70,6 +80,10 @@ bestActorDrama = ["Steve Carell", "Benedict Cumberbatch", "Jake Gyllenhaal", "Da
 bestActressDrama = ["Jennifer Aniston", "Felicity Jones", "Julianne Moore", "Rosamund Pike", "Reese Witherspoon"]
 bestPictureDrama = ["Boyhood", "Foxcatcher", "The Imitation Game", "Selma", "The Theory of Everything"]
 
+bestActorMusicalComedy = ["Ralph Fiennes", "Michael Keaton", "Bill Murray", "Joaquin Phoenix", "Christoph Waltz"]
+bestActressMusicalComedy = ["Amy Adams", "Emily Blunt", "Helen Mirren", "Julianne Moore", "Quvenzhane Wallis"]
+bestPictureComedy = ["Birdman", "The Grand Budapest Hotel", "Into the Woods", "Pride", "St. Vincent"]
+
 # for word in bestActorDrama:
 #     if "Eddie" in word:
 #         print word
@@ -82,7 +96,7 @@ for word in sorted(dictionary, key=dictionary.get, reverse=True):
 	if (length < 100):
 		for name in bestActorDrama:
 			if word in name:
-				print word
+				print name
 				length = 100
 		length += 1
 
