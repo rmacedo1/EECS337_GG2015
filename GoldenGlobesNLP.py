@@ -3,6 +3,7 @@
 
 import json
 import nltk
+import re
 
 awards = [];    #hard coding
 nominees = [];  #hard coding
@@ -11,6 +12,12 @@ predictKeywords = ["think", "calling", "want", "predict", "deserves", "predictio
 winnerKeywords = ["wins", "won", "speech", "gave speech", "thanks", "thanked"]
 presentersKeywords = ["presenting", "giving award", "jokes"]
 notAllowed = ["#", ".", "@", ":", "http", "://", "/", "co"];
+
+
+bestActorMusicalComedy = ["Ralph Fiennes", "Michael Keaton", "Bill Murray", "Joaquin Phoenix", "Christoph Waltz"]
+bestActressMusicalComedy = ["Amy Adams", "Emily Blunt", "Helen Mirren", "Julianne Moore", "Quvenzhane Wallis"]
+bestPictureComedy = ["Birdman", "The Grand Budapest Hotel", "Into the Woods", "Pride", "St. Vincent"]
+bestPictureMusicalComedy = ["Birdman", "The Grand Budapest Hotel", "Into the Woods", "Pride", "St. Vincent"]
 
 
 def getData():
@@ -31,23 +38,61 @@ def noPredictions(parsedTweets):
     returns a list of trimmed tweets
     """
     noPredTweets = []
-    for tweet in parsedTwees:
+    for tweet in parsedTweets:
         if (not any([x in tweet for x in predictKeywords])):
             noPredTweets.append(tweet)
             
     return noPredTweets
-    
-def splitIntoCategories(noPredTweets, categories):
+
+  
+def splitIntoCategories(tweets, categories):
     """
     Group up the parsed tweets into the award categories arrays.
     return?
     """
-    BestMotionPictureTweets = []
-    category2tweets = []
-    category2tweets = []
-    #ect.
+
+    #create category arrays
+    for x in categories:
+        keywords = buildCategoryKeywords(x);
+        
+        name = x.replace(" ", "")
+        name = []
+        
+        name = getTweets(noPredTweets, keywords)
+        print name
+        
+    return 
+
+
+def buildCategoryKeywords(categoryname):
+    """
+    Takes in a category name and splits it up into individual keywords
+    returns a list of the keywords
+    """
+    catKeywords = []
+    catKeywords2 =[]
     
-    return
+    catKeywords = re.findall('[A-Z][^A-Z]*', categoryname)
+
+    for word in catKeywords:
+        noSpaceWord = word.replace(" ", "")
+        catKeywords2.append(noSpaceWord)
+        
+    return catKeywords2
+    
+
+def getTweets(tweets, keywords):
+    """
+    Takes in a list of tweets and keywords
+    Returns a list of tweets relevant to the given keywords
+    """
+    catTweets = []
+
+    for tweet in tweets:
+        if (any ([x in keywords for x in tweet])):
+            catTweets.append(tweet)
+            
+    return catTweets
 
 def getCount(tweets):
     """
@@ -80,6 +125,7 @@ def sortCountDict(dictionary):
     return sortedLists
             
 
+# Text interaction and results
 def results():
     """Return a dictionary with the Hosts and Winners,
     Presenters, Nominees for each Award.
