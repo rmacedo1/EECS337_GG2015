@@ -1,0 +1,88 @@
+import json
+import nltk
+
+
+#with open("/Users/kristinfunch/Downloads/gg15trimmed.json") as file:
+ #   tweets = [json.loads(line)["text"] for line in file]
+
+with open("/Users/kristinfunch/Downloads/gg15trimmed.json") as file:
+    tweets = [nltk.wordpunct_tokenize(json.loads(line)["text"]) for line in file]
+
+#parsedTweets = [nltk.word_tokenize(tweet) for tweet in tweets]
+
+#parsedTweets = [nltk.wordpunct_tokenize(tweet) for tweet in tweets]
+
+#theCount = [parsedTweets.count("the") for tweet in parsedTweets]
+
+#theCount = [tweets.count("the") for tweet in tweets]
+
+theCount = 0
+
+for tweet in tweets:
+	if("the" in tweet):
+		theCount += 1
+
+hostTweets = []
+for tweet in tweets:
+	if any([x in tweet for x in ["host", "hosting", "hosts"]]):
+		hostTweets.append(tweet)
+
+predList = ["which", "Which", "calling", "Calling", "think", "Think", "who", "Who", "Want", "want", "Predictions", "Prediction", "predictions", "prediction", "predictor", "Predictor", "If", "if", "hope", "Hope", "please", "Please"]
+
+noPredictionTweets = []
+for tweet in tweets:
+	if not(any([x in tweet for x in predList])):
+		noPredictionTweets.append(tweet)
+
+winTweets = []
+for tweet in noPredictionTweets:
+	if any([x in tweet for x in ["wins", "won", "win", "winning"]]):
+		winTweets.append(tweet)
+
+bestDramaTweets = []
+for tweet in winTweets:
+	if (any([x in tweet for x in ["best", "Best"]]) and any([x in tweet for x in ["drama", "Drama"]])):
+		bestDramaTweets.append(tweet)
+
+bestMPdramaTweets = []
+for tweet in bestDramaTweets:
+	if any([x in tweet for x in ["motion", "Motion", "picture", "Picture"]]):
+		bestMPdramaTweets.append(tweet)
+
+
+dictionary = dict()
+
+for tweet in bestMPdramaTweets:
+	for word in tweet:
+		if word[0].isupper():
+			if word in dictionary:
+				dictionary[word] += 1
+			else:
+				dictionary[word] = 1
+length = 0
+for word in sorted(dictionary, key=dictionary.get, reverse=True):
+	if (length < 100):
+		print word, dictionary[word]
+		length += 1
+
+
+bestActorDrama = ["Steve Carell", "Benedict Cumberbatch", "Jake Gyllenhaal", "David Oyelowo", "Eddie Redmayne"]
+bestActressDrama = ["Jennifer Aniston", "Felicity Jones", "Julianne Moore", "Rosamund Pike", "Reese Witherspoon"]
+bestPictureDrama = ["Boyhood", "Foxcatcher", "The Imitation Game", "Selma", "The Theory of Everything"]
+
+# for word in bestActorDrama:
+#     if "Eddie" in word:
+#         print word
+
+
+
+
+length = 0
+for word in sorted(dictionary, key=dictionary.get, reverse=True):
+	if (length < 100):
+		for name in bestActorDrama:
+			if word in name:
+				print word
+				length = 100
+		length += 1
+
