@@ -10,13 +10,14 @@ predictKeywords = ["think", "calling", "want", "predict", "deserves", "predictio
                    "hope"]
 winnerKeywords = ["wins", "won", "speech", "gave speech", "thanks", "thanked"]
 presentersKeywords = ["presenting", "giving award", "jokes"]
+notAllowed = ["#", ".", "@", ":", "http", "://", "/", "co"];
 
 
 def getData():
-    """input: 
-    output: 
+    """input: None
+    output: a list of list of tokenized tweets
     """
-    with open("C:\Users\Rosio\Desktop\goldenglobes2015.json\goldenglobes2015_1.json") as file:
+    with open("C:\Users\Rosio\Desktop\goldenglobes2015NEW.json\gg15trimmed.json") as file:
         tweets = [json.loads(line)["text"] for line in file]
     
     parsedTweets = [nltk.wordpunct_tokenize(tweet) for tweet in tweets]
@@ -35,7 +36,6 @@ def noPredictions(parsedTweets):
             noPredTweets.append(tweet)
             
     return noPredTweets
-
     
 def splitIntoCategories(noPredTweets, categories):
     """
@@ -43,12 +43,49 @@ def splitIntoCategories(noPredTweets, categories):
     return?
     """
     BestMotionPictureTweets = []
-    award2Tweets = []
-    award3Tweets = []
+    category2tweets = []
+    category2tweets = []
     #ect.
     
     return
 
+def getCount(tweets):
+    """
+    Takes in a list of tweets and returns a dictionary
+    with the frequency of each word
+    """
+    diction = dict()
+    
+    for tweet in tweets:
+        for word in tweet:
+            if word[0].isupper():
+                if word in diction:
+                    diction[word] += 1
+                else:
+                   diction[word] = 1
+
+    return diction
+
+
+def sortCountDict(dictionary):
+    """
+    Create a list of lists with sorted word, count pairs
+    """
+    sortedLists = [];
+    
+    for  word in sorted(diction, key = diction.get, reverse = True):
+        line = (word, dictionary[word])
+        sortedLists.append(line)
+
+    return sortedLists
+            
+
+def results():
+    """Return a dictionary with the Hosts and Winners,
+    Presenters, Nominees for each Award.
+    """
+    
+    return answersDict;
 
 def menu():
     """ Presents users with menu options
@@ -63,13 +100,6 @@ def menu():
     
     choice = input("Please enter your option")
     return
-
-def results():
-    """Return a dictionary with the Hosts and Winners,
-    Presenters, Nominees for each Award.
-    """
-    
-    return answersDict;
 
 
 
