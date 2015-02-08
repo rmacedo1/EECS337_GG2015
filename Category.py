@@ -49,6 +49,7 @@ def group(superlist, n):
 		if lst[n] == cmp:
 			currentgroup.append(lst)
 		else:
+			cmp = lst[n];
 			groups.append(currentgroup)
 			currentgroup = [lst]
 	groups.append(currentgroup);
