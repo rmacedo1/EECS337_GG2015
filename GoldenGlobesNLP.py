@@ -5,18 +5,19 @@ import json
 import nltk
 import re
 import Category
+import JakeFunctions
 
-awards = [];    #hard coding
-nominees = [];  #hard coding
 predictKeywords = ["think", "calling", "want", "predict", "deserves", "predictions", "if", "hoping",
                    "hope", "which", "Which", "Calling", "Think", "who", "Who", "Want",
                    "Prediction", "Predictions", "prediction", "Predictor", "predictor"
                    "If", "Hope", "please", "Please"]
 
-winnerKeywords = ["wins", "won", "speech", "gave speech", "thanks", "thanked"]
+winnerKeywords = ["wins", "won", "speech", "gave speech", "thanks", "thanked",
+                  "Wins", "Won", "Speech", "Gave Speech", "Thanks", "Thanked",
+                  "congrats", "Congrats"]
 
 presentersKeywords = ["presenting", "giving award", "jokes"]
-notAllowed = ["#", ".", "@", ":", "http", "://", "/", "co"];
+notAllowed = ["#", ".", "@", ":", "http", "://", "/", "co"]
 """
 categories = ["Best Motion Picture", "Best Performance by an Actor in a Motion Picture",
               "Best Performance by an Actress in a Motion Picture",
@@ -34,6 +35,8 @@ categories = ["Best Motion Picture", "Best Performance by an Actor in a Motion P
               "Best Televison Series", "Best Mini-Series or Motion Picture Made for Television"]
 
 """
+#globalBadWords = ["Supporting", "Drama", "Musical or Comedy", 
+
 (categories, nominees) = Category.createCategories()
 
 
@@ -60,6 +63,12 @@ def noPredictions(parsedTweets):
             noPredTweets.append(tweet)
             
     return noPredTweets
+
+def Testing():
+    parsedTweets = getData()
+    cleanTweets = noPredictions(parsedTweets)
+
+    return cleanTweets
   
 def splitIntoCategories(tweets):
     """
@@ -69,8 +78,6 @@ def splitIntoCategories(tweets):
     """
 
     countDict = []
-    nominees = []
-
     listDictionary = []
 
     #create category arrays
@@ -80,32 +87,21 @@ def splitIntoCategories(tweets):
     
     for x in zip(listDictionary, nominees): 
 
-        #build list of keywords for category
-        #keywords = buildCategoryKeywords(x.name);
-        
-        #name = x.replace(" ", "")
-        #print name
-        #name = []
+        winTweets = winnerTweets(x[0]["Tweets"])
 
-        #get tweets pertaining to catogory
-        #name = getTweets(noPredTweets, keywords)
-
-        #get winning/presenter/whatever we need tweets
-        print x[0]["Cats"]
-        
-        winTweets = winnerTweets(x[0]["Tweet"])
 
         #get word frequencies
         countDict = getCount(winTweets)
+        print countDict
 
         #get nominees for category
         if (type(x[1]) is list):
-            nominees = x[1]
+            noms = x[1]
         else:
-            nominees =  x[1]["Person"] #getNominees(x["Cats"])
+            noms =  x[1]["Person"] #getNominees(x["Cats"])
         
         #try and find winner
-        winner = predictWinner(countDict, nominees)
+        winner = predictWinner(countDict, noms)
 
         print winner
         
@@ -118,17 +114,23 @@ def splitTweets (category, tweets, catName):
     Takes an object of type Category class, a list of tweets, and a list containing the category name
     Returns a list of dictionaries with tweets pertaining to that category
     """
+    level = 0;
+    
     if (category.subcats == []):
         return [ {"Cats": catName, "Tweets": tweets} ]
     else:
-        keywords = buildCategoryKeywords(category.name)
 
-        relTweets = getTweets(tweets, keywords)
+        keywords = buildCategoryKeywords(category.name)
+        
+        print keywords
+        badwords = []
+            
+        relTweets = filtertweets(tweets, keywords, badwords)
 
         listTweets = []
 
         for cat in category.subcats:
-            listTweets = listTweets + splitTweets(cat, relTweets, catName + [category.name])
+            listTweets = listTweets + splitTweets(cat, relTweets, catName + [cat.name])
             
         return listTweets
 
@@ -150,22 +152,22 @@ def buildCategoryKeywords(categoryname):
         
     return catKeywords2
     
-
-def getTweets(tweets, keywords):
-    """
+"""
+def getTweets(tweets, goodkeywords):
+    
     Takes in a list of tweets and keywords
     Returns a list of tweets relevant to the given keywords
 
     Kristin's Code
-    """
+
     catTweets = []
 
     for tweet in tweets:
-        if (any ([x in keywords for x in tweet])):
+        if (any ([x in keywords for x in tweet]s)):
             catTweets.append(tweet)
             
     return catTweets
-
+"""
 """ NOT NEEDED ANYMORE HOPEFULLY
 def getNominees(category):
     
@@ -185,9 +187,7 @@ def getNominees(category):
     with open("categories_nominees_winners.json") as infile:
         awards = json.load(infile)["Awards"]
 
-    for line in awards:
-        
-            
+    for line in awards:        
 """
 
 def winnerTweets(tweets):
@@ -236,16 +236,18 @@ def sortCountDict(dictionary):
 
     return sortedLists
 
-def predictWinner(namedict, nominees):
+def predictWinner(namedict, noms):
     """
     Takes a dictionary of words and their count/frequency and
     a list of category nominees and returns the predicted winner.
     
     Jake's winner predictor function
     """
+    print "Length of dictionary with results" + len(namedict)
+    
     for word in sorted(namedict, key=namedict.get, reverse=True):
-       for name in nominees:
-           if word in nominees:
+       for name in noms:
+           if word in noms:
                return name
 
             
