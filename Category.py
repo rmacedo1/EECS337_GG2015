@@ -62,16 +62,20 @@ def createCategories(categoryFN="categories_nominees_winners.json"):
 		awards = json.load(infile)["Awards"];
 
 	hierachies = [];
+	listOfNomineesLists = [];
 	for award in awards:
 		category = award["Category"];
+		listOfNomineesLists = listOfNomineesLists + [award["Nominees"]]
 		temp = splitRecursive(category, splits);
 		temp = [stripTrailingWhitespace(b) for b in temp];
 		hierachies.append(temp);
 
-	hierachies = sorted(hierachies)
+	nominees_hierachies_tuple = zip(hierachies, listOfNomineesLists);
+	nominees_hierachies_tuple = sorted(nominees_hierachies_tuple)
+	hierachies = [x[0] for x in nominees_hierachies_tuple]
+	listOfNomineesLists = [y[1] for y in nominees_hierachies_tuple]
 	categories = findCats(hierachies, 0)
-	return categories
-
+	return (categories, listOfNomineesLists)
 
 
 
