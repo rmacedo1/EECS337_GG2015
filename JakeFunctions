@@ -1,8 +1,6 @@
 import json
 import nltk
-
-global winwords = ['win','won','winning','wins']
-global predictwords = ['which','Which','calling','Calling','think','Think','who','Who','want','Want','predictions','Predictions','prediction','Prediction','predictor','Predictor','hope','Hope','please','Please','if','If']
+import re
 
 def tweetsfromfile(filename):
 	with open(filename) as file:
@@ -21,11 +19,20 @@ def buildnamedict(tweets):
 				namedict[word] += 1
 	return namedict
 
+def buildnamelist(tweets):
+	namelist = []
+	for tweet in tweets:
+		tweetnames = re.findall('([A-Z][a-z]+(?=\s[A-Z])(?:\s[A-Z][a-z]+)+)'," ".join(tweet))
+		for name in tweetnames:
+			if name not in namelist:
+				namelist.append(name)
+	return namelist
+
 def printtopdictvals(namedict,num):
 	itr = 0
-	for word in sorted(namedict, key=namedict.get, reverse=true):
+	for word in sorted(namedict, key=namedict.get, reverse=True):
 		if (itr < num):
-			print word, dictionary[word]
+			print word, namedict[word]
 			itr += 1
 
 def predictWinner(namedict,names):
