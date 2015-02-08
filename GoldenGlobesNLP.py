@@ -4,20 +4,37 @@
 import json
 import nltk
 import re
+import Category
 
 awards = [];    #hard coding
 nominees = [];  #hard coding
 predictKeywords = ["think", "calling", "want", "predict", "deserves", "predictions", "if", "hoping",
-                   "hope"]
+                   "hope", "which", "Which", "Calling", "Think", "who", "Who", "Want",
+                   "Prediction", "Predictions", "prediction", "Predictor", "predictor"
+                   "If", "Hope", "please", "Please"]
+
 winnerKeywords = ["wins", "won", "speech", "gave speech", "thanks", "thanked"]
+
 presentersKeywords = ["presenting", "giving award", "jokes"]
 notAllowed = ["#", ".", "@", ":", "http", "://", "/", "co"];
+"""
+categories = ["Best Motion Picture", "Best Performance by an Actor in a Motion Picture",
+              "Best Performance by an Actress in a Motion Picture",
+              "Best Performance by an Actor in a Supporting Role in a Motion Picture",
+              "Best Performance by an Actress in a Supporting Role in a Motion Picture",
+              "Best Director", "Best Screen Play", "Best Original Song",
+              "Best Original Score", "Best Foreign Language Film", "Best Animated Feature Film"
+              "Best Performance by an Actor in a Television Series",
+              "Best Performance by an Actor in a Mini-Series or a Motion Picture Made for Television"
+              "Best Performance by an Actor in a Television Series",
+              "Best Performance by an Actress in a Television Series",
+              "Best Performance by an Actress in a Mini-Series or a Motion Picture Made for Television"
+              "Best Performance by an Actor in a Supporting Role in a Series, Mini-Series, or Motion Picture Made for Television",
+              "Best Performance by an Actress in a Supporting Role in a Series, Mini-Series, or Motion Picture Made for Television",
+              "Best Televison Series", "Best Mini-Series or Motion Picture Made for Television"]
 
-
-bestActorMusicalComedy = ["Ralph Fiennes", "Michael Keaton", "Bill Murray", "Joaquin Phoenix", "Christoph Waltz"]
-bestActressMusicalComedy = ["Amy Adams", "Emily Blunt", "Helen Mirren", "Julianne Moore", "Quvenzhane Wallis"]
-bestPictureComedy = ["Birdman", "The Grand Budapest Hotel", "Into the Woods", "Pride", "St. Vincent"]
-bestPictureMusicalComedy = ["Birdman", "The Grand Budapest Hotel", "Into the Woods", "Pride", "St. Vincent"]
+"""
+(categories, nominees) = Category.createCategories()
 
 
 def getData():
@@ -43,27 +60,80 @@ def noPredictions(parsedTweets):
             noPredTweets.append(tweet)
             
     return noPredTweets
-
   
-def splitIntoCategories(tweets, categories):
+def splitIntoCategories(tweets):
     """
     Group up the parsed tweets into the award categories arrays.
+    categories: A list of Category class
     return?
     """
 
+    countDict = []
+    nominees = []
+
+    listDictionary = []
+
     #create category arrays
-    for x in categories:
-        keywords = buildCategoryKeywords(x);
+
+    for x in categories: #category dictionary
+        listDictionary = listDictionary + splitTweets(x, tweets, [x.name])
+    
+    for x in zip(listDictionary, nominees): 
+
+        #build list of keywords for category
+        #keywords = buildCategoryKeywords(x.name);
         
-        name = x.replace(" ", "")
-        name = []
+        #name = x.replace(" ", "")
+        #print name
+        #name = []
+
+        #get tweets pertaining to catogory
+        #name = getTweets(noPredTweets, keywords)
+
+        #get winning/presenter/whatever we need tweets
+        print x[0]["Cats"]
         
-        name = getTweets(noPredTweets, keywords)
-        print name
+        winTweets = winnerTweets(x[0]["Tweet"])
+
+        #get word frequencies
+        countDict = getCount(winTweets)
+
+        #get nominees for category
+        if (type(x[1]) is list):
+            nominees = x[1]
+        else:
+            nominees =  x[1]["Person"] #getNominees(x["Cats"])
+        
+        #try and find winner
+        winner = predictWinner(countDict, nominees)
+
+        print winner
         
     return 
 
 
+
+def splitTweets (category, tweets, catName):
+    """
+    Takes an object of type Category class, a list of tweets, and a list containing the category name
+    Returns a list of dictionaries with tweets pertaining to that category
+    """
+    if (category.subcats == []):
+        return [ {"Cats": catName, "Tweets": tweets} ]
+    else:
+        keywords = buildCategoryKeywords(category.name)
+
+        relTweets = getTweets(tweets, keywords)
+
+        listTweets = []
+
+        for cat in category.subcats:
+            listTweets = listTweets + splitTweets(cat, relTweets, catName + [category.name])
+            
+        return listTweets
+
+        
+        
 def buildCategoryKeywords(categoryname):
     """
     Takes in a category name and splits it up into individual keywords
@@ -85,6 +155,8 @@ def getTweets(tweets, keywords):
     """
     Takes in a list of tweets and keywords
     Returns a list of tweets relevant to the given keywords
+
+    Kristin's Code
     """
     catTweets = []
 
@@ -94,10 +166,50 @@ def getTweets(tweets, keywords):
             
     return catTweets
 
+""" NOT NEEDED ANYMORE HOPEFULLY
+def getNominees(category):
+    
+    Takes in a string (or a list of appended name) of the category name for which it
+    will return the nominees
+
+    Hard-coded for now
+    
+    
+    
+    bestActorMusicalComedy = ["Ralph Fiennes", "Michael Keaton", "Bill Murray", "Joaquin Phoenix", "Christoph Waltz"]
+    bestActressMusicalComedy = ["Amy Adams", "Emily Blunt", "Helen Mirren", "Julianne Moore", "Quvenzhane Wallis"]
+    bestPictureComedy = ["Birdman", "The Grand Budapest Hotel", "Into the Woods", "Pride", "St. Vincent"]
+    bestPictureMusicalComedy = ["Birdman", "The Grand Budapest Hotel", "Into the Woods", "Pride", "St. Vincent"]
+    
+
+    with open("categories_nominees_winners.json") as infile:
+        awards = json.load(infile)["Awards"]
+
+    for line in awards:
+        
+            
+"""
+
+def winnerTweets(tweets):
+    """"
+    Selects the tweets that are likely to pertain to winners according to
+    winner kewords list.
+    Returns an array that has matches to winner keywords
+    """
+    winTweets = []
+    
+    for tweet in tweets:
+        if (any ([x in winnerKeywords for x in tweet])):
+            winTweets.append(tweet)
+            
+    return winTweets
+
 def getCount(tweets):
     """
     Takes in a list of tweets and returns a dictionary
     with the frequency of each word
+    
+    Kristin's dictionary code
     """
     diction = dict()
     
@@ -123,6 +235,19 @@ def sortCountDict(dictionary):
         sortedLists.append(line)
 
     return sortedLists
+
+def predictWinner(namedict, nominees):
+    """
+    Takes a dictionary of words and their count/frequency and
+    a list of category nominees and returns the predicted winner.
+    
+    Jake's winner predictor function
+    """
+    for word in sorted(namedict, key=namedict.get, reverse=True):
+       for name in nominees:
+           if word in nominees:
+               return name
+
             
 
 # Text interaction and results
