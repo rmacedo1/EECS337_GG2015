@@ -55,9 +55,14 @@ def group(superlist, n):
 	groups.append(currentgroup);
 	return groups
 
+def nameToListofStrings(category):
+	splits = ["in a","In A", ",", " - "];
+	temp = splitRecursive(category, splits);
+	temp = [stripTrailingWhitespace(b) for b in temp];
+	return temp
+
 
 def createCategories(categoryFN="categories_nominees_winners.json"):
-	splits = ["in a","In A", ",", " - "];
 	with open(categoryFN) as infile:
 		awards = json.load(infile)["Awards"];
 
@@ -66,9 +71,8 @@ def createCategories(categoryFN="categories_nominees_winners.json"):
 	for award in awards:
 		category = award["Category"];
 		listOfNomineesLists = listOfNomineesLists + [award["Nominees"]]
-		temp = splitRecursive(category, splits);
-		temp = [stripTrailingWhitespace(b) for b in temp];
-		hierachies.append(temp);
+		listOfStrings = nameToListofStrings(category);
+		hierachies.append(listOfStrings);
 
 	nominees_hierachies_tuple = zip(hierachies, listOfNomineesLists);
 	nominees_hierachies_tuple = sorted(nominees_hierachies_tuple)
