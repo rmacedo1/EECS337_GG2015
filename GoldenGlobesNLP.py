@@ -18,23 +18,7 @@ winnerKeywords = ["wins", "won", "speech", "gave speech", "thanks", "thanked",
 
 presentersKeywords = ["presenting", "giving award", "jokes"]
 notAllowed = ["#", ".", "@", ":", "http", "://", "/", "co"]
-"""
-categories = ["Best Motion Picture", "Best Performance by an Actor in a Motion Picture",
-              "Best Performance by an Actress in a Motion Picture",
-              "Best Performance by an Actor in a Supporting Role in a Motion Picture",
-              "Best Performance by an Actress in a Supporting Role in a Motion Picture",
-              "Best Director", "Best Screen Play", "Best Original Song",
-              "Best Original Score", "Best Foreign Language Film", "Best Animated Feature Film"
-              "Best Performance by an Actor in a Television Series",
-              "Best Performance by an Actor in a Mini-Series or a Motion Picture Made for Television"
-              "Best Performance by an Actor in a Television Series",
-              "Best Performance by an Actress in a Television Series",
-              "Best Performance by an Actress in a Mini-Series or a Motion Picture Made for Television"
-              "Best Performance by an Actor in a Supporting Role in a Series, Mini-Series, or Motion Picture Made for Television",
-              "Best Performance by an Actress in a Supporting Role in a Series, Mini-Series, or Motion Picture Made for Television",
-              "Best Televison Series", "Best Mini-Series or Motion Picture Made for Television"]
 
-"""
 #globalBadWords = ["Supporting", "Drama", "Musical or Comedy", 
 
 (categories, nominees) = Category.createCategories()
@@ -67,7 +51,6 @@ def noPredictions(parsedTweets):
 def Testing():
     parsedTweets = getData()
     cleanTweets = noPredictions(parsedTweets)
-
     return cleanTweets
   
 def splitIntoCategories(tweets):
@@ -76,37 +59,33 @@ def splitIntoCategories(tweets):
     categories: A list of Category class
     return?
     """
-
     countDict = []
     listDictionary = []
 
     #create category arrays
-
     for x in categories: #category dictionary
         listDictionary = listDictionary + splitTweets(x, tweets, [x.name])
     
-    for x in zip(listDictionary, nominees): 
-
+    for x in zip(listDictionary, nominees):
+        noms = []
         winTweets = winnerTweets(x[0]["Tweets"])
-
-
+        
+        print "The category is "
+        print x[0]["Cats"]        
         #get word frequencies
         countDict = getCount(winTweets)
-        print countDict
-
         #get nominees for category
-        if (type(x[1]) is list):
-            noms = x[1]
+        #print type(x[1][0])
+        if (type(x[1][0]) is dict):
+            for person in x[1]:
+                noms +=  [person["Person"]]
         else:
-            noms =  x[1]["Person"] #getNominees(x["Cats"])
-        
-        #try and find winner
+            noms = x[1]
+         
         winner = predictWinner(countDict, noms)
-
         print winner
         
     return 
-
 
 
 def splitTweets (category, tweets, catName):
@@ -114,27 +93,29 @@ def splitTweets (category, tweets, catName):
     Takes an object of type Category class, a list of tweets, and a list containing the category name
     Returns a list of dictionaries with tweets pertaining to that category
     """
-    level = 0;
     
     if (category.subcats == []):
         return [ {"Cats": catName, "Tweets": tweets} ]
     else:
-
+#I don't think this is working correctly, correct keywords are from top
+        #level only
         keywords = buildCategoryKeywords(category.name)
         
-        print keywords
         badwords = []
+
+        print "keywords are "
+        print keywords
             
         relTweets = filtertweets(tweets, keywords, badwords)
 
         listTweets = []
 
         for cat in category.subcats:
+            print "subcat is " + cat.name
             listTweets = listTweets + splitTweets(cat, relTweets, catName + [cat.name])
             
         return listTweets
 
-        
         
 def buildCategoryKeywords(categoryname):
     """
@@ -151,44 +132,7 @@ def buildCategoryKeywords(categoryname):
         catKeywords2.append(noSpaceWord)
         
     return catKeywords2
-    
-"""
-def getTweets(tweets, goodkeywords):
-    
-    Takes in a list of tweets and keywords
-    Returns a list of tweets relevant to the given keywords
 
-    Kristin's Code
-
-    catTweets = []
-
-    for tweet in tweets:
-        if (any ([x in keywords for x in tweet]s)):
-            catTweets.append(tweet)
-            
-    return catTweets
-"""
-""" NOT NEEDED ANYMORE HOPEFULLY
-def getNominees(category):
-    
-    Takes in a string (or a list of appended name) of the category name for which it
-    will return the nominees
-
-    Hard-coded for now
-    
-    
-    
-    bestActorMusicalComedy = ["Ralph Fiennes", "Michael Keaton", "Bill Murray", "Joaquin Phoenix", "Christoph Waltz"]
-    bestActressMusicalComedy = ["Amy Adams", "Emily Blunt", "Helen Mirren", "Julianne Moore", "Quvenzhane Wallis"]
-    bestPictureComedy = ["Birdman", "The Grand Budapest Hotel", "Into the Woods", "Pride", "St. Vincent"]
-    bestPictureMusicalComedy = ["Birdman", "The Grand Budapest Hotel", "Into the Woods", "Pride", "St. Vincent"]
-    
-
-    with open("categories_nominees_winners.json") as infile:
-        awards = json.load(infile)["Awards"]
-
-    for line in awards:        
-"""
 
 def winnerTweets(tweets):
     """"
@@ -201,7 +145,7 @@ def winnerTweets(tweets):
     for tweet in tweets:
         if (any ([x in winnerKeywords for x in tweet])):
             winTweets.append(tweet)
-            
+           
     return winTweets
 
 def getCount(tweets):
@@ -243,14 +187,18 @@ def predictWinner(namedict, noms):
     
     Jake's winner predictor function
     """
-    print "Length of dictionary with results" + len(namedict)
+    
+    print "Length of dictionary with results " + str(len(namedict))
+    print "nominees to predict winners are "
+    print noms
     
     for word in sorted(namedict, key=namedict.get, reverse=True):
-       for name in noms:
-           if word in noms:
-               return name
+        print word
+        for name in noms:
+            if word in noms:
+                print "and winner is" + name
+                return name
 
-            
 
 # Text interaction and results
 def results():
