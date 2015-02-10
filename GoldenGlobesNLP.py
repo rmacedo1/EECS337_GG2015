@@ -52,6 +52,11 @@ def Testing():
     parsedTweets = getData()
     cleanTweets = noPredictions(parsedTweets)
     return cleanTweets
+
+def Testing2(tweets):
+    dictionary = splitIntoCategories(tweets)
+    detectData(dictionary)
+    return
   
 def splitIntoCategories(tweets):
     """
@@ -59,23 +64,38 @@ def splitIntoCategories(tweets):
     categories: A list of Category class
     return?
     """
-    countDict = []
     listDictionary = []
 
     #create category arrays
     for x in categories: #category dictionary
         listDictionary = listDictionary + splitTweets(x, tweets, [x.name])
+
+    return listDictionary
+
+
+def detectData(listDictionary):
+    """
+    Takes in a dictionary of categories and corresponding tweets.
+    Processes tweets further to extract desired information.
     
+    Returns a dictionary with Award, Winners, Presenters, and Nominees
+    """
+    countDict = []
     for x in zip(listDictionary, nominees):
         noms = []
+
+        #will modify winnerTweets to take an input so that
+        #we can search for winners and presenters
         winTweets = winnerTweets(x[0]["Tweets"])
         
         print "The category is "
-        print x[0]["Cats"]        
+        print x[0]["Cats"]
+        
         #get word frequencies
         countDict = getCount(winTweets)
         #get nominees for category
-        #print type(x[1][0])
+        print type(x[1][0])
+        
         if (type(x[1][0]) is dict):
             for person in x[1]:
                 noms +=  [person["Person"]]
@@ -83,35 +103,33 @@ def splitIntoCategories(tweets):
             noms = x[1]
          
         winner = predictWinner(countDict, noms)
+
         print winner
         
     return 
-
 
 def splitTweets (category, tweets, catName):
     """
     Takes an object of type Category class, a list of tweets, and a list containing the category name
     Returns a list of dictionaries with tweets pertaining to that category
     """
-    
+    keywords = []
+    listTweets = []
+
     if (category.subcats == []):
-        return [ {"Cats": catName, "Tweets": tweets} ]
+        keywords = keywords + buildCategoryKeywords(category.name)
+        badwords = []      
+        relTweets = filtertweets(tweets, keywords, badwords)
+
+        return [ {"Cats": catName, "Tweets": relTweets} ]
     else:
-#I don't think this is working correctly, correct keywords are from top
-        #level only
-        keywords = buildCategoryKeywords(category.name)
+        keywords = keywords + buildCategoryKeywords(category.name)
         
         badwords = []
 
-        print "keywords are "
-        print keywords
-            
         relTweets = filtertweets(tweets, keywords, badwords)
 
-        listTweets = []
-
         for cat in category.subcats:
-            print "subcat is " + cat.name
             listTweets = listTweets + splitTweets(cat, relTweets, catName + [cat.name])
             
         return listTweets
@@ -145,7 +163,7 @@ def winnerTweets(tweets):
     for tweet in tweets:
         if (any ([x in winnerKeywords for x in tweet])):
             winTweets.append(tweet)
-           
+
     return winTweets
 
 def getCount(tweets):
@@ -188,15 +206,9 @@ def predictWinner(namedict, noms):
     Jake's winner predictor function
     """
     
-    print "Length of dictionary with results " + str(len(namedict))
-    print "nominees to predict winners are "
-    print noms
-    
     for word in sorted(namedict, key=namedict.get, reverse=True):
-        print word
         for name in noms:
-            if word in noms:
-                print "and winner is" + name
+            if word in name:
                 return name
 
 
