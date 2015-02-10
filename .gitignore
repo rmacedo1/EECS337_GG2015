@@ -6,3 +6,5 @@ wordList.json
 readInTweets.py
 
 Category.pyc
+
+*.pyc
