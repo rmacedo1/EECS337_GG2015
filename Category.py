@@ -68,9 +68,11 @@ def createCategories(categoryFN="categories_nominees_winners.json"):
 
 	hierachies = [];
 	listOfNomineesLists = [];
+	listOfCats = [];
 	for award in awards:
 		category = award["Category"];
 		listOfNomineesLists = listOfNomineesLists + [award["Nominees"]]
+		listOfCats = listOfCats + [category];
 		listOfStrings = nameToListofStrings(category);
 		hierachies.append(listOfStrings);
 
@@ -79,7 +81,7 @@ def createCategories(categoryFN="categories_nominees_winners.json"):
 	hierachies = [x[0] for x in nominees_hierachies_tuple]
 	listOfNomineesLists = [y[1] for y in nominees_hierachies_tuple]
 	categories = findCats(hierachies, 0)
-	return (categories, listOfNomineesLists)
+	return (categories, listOfNomineesLists, listOfCats)
 
 
 

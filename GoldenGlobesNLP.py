@@ -1,4 +1,4 @@
-# February 7, 2015
+# February, 2015
 # EECS 337 NLP
 
 import json
@@ -7,21 +7,29 @@ import re
 import Category
 import JakeFunctions
 
-predictKeywords = ["think", "calling", "want", "predict", "deserves", "predictions", "if", "hoping",
+predictKeywords = ["think", "calling", "want", "predict", "predictions", "if", "hoping",
                    "hope", "which", "Which", "Calling", "Think", "who", "Who", "Want",
                    "Prediction", "Predictions", "prediction", "Predictor", "predictor"
-                   "If", "Hope", "please", "Please"]
+                   "If", "Hope", "please", "Please", "should've", "Should've",
+                   "should", "Should", "torn", "prays"]
 
-winnerKeywords = ["wins", "won", "speech", "gave speech", "thanks", "thanked",
-                  "Wins", "Won", "Speech", "Gave Speech", "Thanks", "Thanked",
-                  "congrats", "Congrats"]
+winnerKeywords = ["wins", "won", "speech",
+                  "Wins", "Won",
+                  "congrats", "Congrats", "winner", "Winner"]
 
 presentersKeywords = ["presenting", "giving award", "jokes"]
 notAllowed = ["#", ".", "@", ":", "http", "://", "/", "co"]
 
-#globalBadWords = ["Supporting", "Drama", "Musical or Comedy", 
+exclude = ["Golden", "Globes", "RT", "Best", "GoldenGlobes", "The", "For",
+           "Motion", "Picture", "Drama", "Comedy","Musical", "Series", "TV",
+           "Actor", "Actress", "Wins", "Congrats", "A", "Movie",
+           "Winner", "Supporting", "Globe", "Or", "At", "I", "G"]
 
-(categories, nominees) = Category.createCategories()
+globalBadWords = ["Supporting", "Drama", "Musical", "Comedy", "Actress", "Actor"
+                  "Movie", "TV", "Mini-series"]
+                  
+
+(categories, nominees, catList) = Category.createCategories()
 
 
 def getData():
@@ -62,7 +70,8 @@ def splitIntoCategories(tweets):
     """
     Group up the parsed tweets into the award categories arrays.
     categories: A list of Category class
-    return?
+    return a dictionary with a list of tweets pertaining to each
+    category
     """
     listDictionary = []
 
@@ -80,34 +89,75 @@ def detectData(listDictionary):
     
     Returns a dictionary with Award, Winners, Presenters, and Nominees
     """
-    countDict = []
+    dictionary = dict()
+        
     for x in zip(listDictionary, nominees):
         noms = []
+        notes = []
 
-        #will modify winnerTweets to take an input so that
-        #we can search for winners and presenters
-        winTweets = winnerTweets(x[0]["Tweets"])
-        
         print "The category is "
         print x[0]["Cats"]
         
-        #get word frequencies
-        countDict = getCount(winTweets)
         #get nominees for category
-        print type(x[1][0])
-        
         if (type(x[1][0]) is dict):
             for person in x[1]:
                 noms +=  [person["Person"]]
+                notes += [person["Notes"]]
         else:
             noms = x[1]
-         
-        winner = predictWinner(countDict, noms)
+
+        #determine category
+        category = getCategory(x[0]["Cats"])
+        winner = getWinner(x[0]["Tweets"], noms, notes)
+        presenters = getPresenter(x[0]["Tweets"])
+
+        #Save all answers
+        dictionary[category] = dict()
+        dictionary[category]["Winner"] = winner
+        dictionary[category]["Presenters"] = presenters
+        dictionary[category]["Nominees"] = noms
 
         print winner
-        
-    return 
+        #print dictionary
+        """
+        with open("results.json", "w") as file:
+            json.dump(dictionary, file)
+        """     
+    return dictionary
 
+def getWinner(tweets, nominees, notes):
+    """
+    Returns the predicted winner given the nominees
+    and category related tweets
+    """
+    countDict = []
+    winTweets = winnerTweets(tweets)
+    #get word frequencies
+    countDict = getCount(winTweets)
+    winner = predictWinner(countDict, nominees, notes)
+    return winner
+
+def getPresenter(tweets):
+    """
+    Returns the predicted winner according to given tweets
+    category relevant tweets
+    """
+    countDict = []
+    presTweets = presenterTweets(tweets)
+    countDict = getCount(presTweets)    
+    presenters = predictPresenters(countDict)
+    return presenters
+
+
+def getCategory(listOfCat):
+    """
+    Returns the award category string
+    """
+    for category in catList:
+        if (all ([words in category for words in listOfCat])):
+            return category
+    
+    
 def splitTweets (category, tweets, catName):
     """
     Takes an object of type Category class, a list of tweets, and a list containing the category name
@@ -118,9 +168,16 @@ def splitTweets (category, tweets, catName):
 
     if (category.subcats == []):
         keywords = keywords + buildCategoryKeywords(category.name)
-        badwords = []      
-        relTweets = filtertweets(tweets, keywords, badwords)
 
+        badwords = []
+        for word in globalBadWords:
+            if word not in keywords:
+                badwords = badwords + [word]
+        
+        relTweets = filtertweets(tweets, keywords, [])
+
+        #print keywords
+        
         return [ {"Cats": catName, "Tweets": relTweets} ]
     else:
         keywords = keywords + buildCategoryKeywords(category.name)
@@ -143,7 +200,7 @@ def buildCategoryKeywords(categoryname):
     catKeywords = []
     catKeywords2 =[]
     
-    catKeywords = re.findall('[A-Z][^A-Z]*', categoryname)
+    catKeywords = re.findall('[A-Z]+[^A-Z ]*', categoryname)
 
     for word in catKeywords:
         noSpaceWord = word.replace(" ", "")
@@ -166,6 +223,19 @@ def winnerTweets(tweets):
 
     return winTweets
 
+def presenterTweets(tweets):
+    """
+    Should return tweets dealing with presenters
+    """
+    presenterTweets = []
+    return presenterTweets
+
+def predictPresenters(dictionary):
+    """
+    Return a list of predicted presenters
+    """
+    return []                     
+
 def getCount(tweets):
     """
     Takes in a list of tweets and returns a dictionary
@@ -177,14 +247,13 @@ def getCount(tweets):
     
     for tweet in tweets:
         for word in tweet:
-            if word[0].isupper():
+            if word[0].isupper() and word not in exclude:
                 if word in diction:
                     diction[word] += 1
                 else:
                    diction[word] = 1
 
     return diction
-
 
 def sortCountDict(dictionary):
     """
@@ -198,13 +267,14 @@ def sortCountDict(dictionary):
 
     return sortedLists
 
-def predictWinner(namedict, noms):
+def predictWinner(namedict, noms, notes):
     """
     Takes a dictionary of words and their count/frequency and
     a list of category nominees and returns the predicted winner.
     
     Jake's winner predictor function
     """
+    count = 20
     
     for word in sorted(namedict, key=namedict.get, reverse=True):
         for name in noms:
