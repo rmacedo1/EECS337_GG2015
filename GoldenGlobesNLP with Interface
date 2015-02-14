@@ -1,0 +1,383 @@
+# February 7, 2015
+# EECS 337 NLP
+
+import sys
+import json
+import nltk
+import re
+import Category
+import JakeFunctions
+import interface
+from os import system
+import curses
+
+predictKeywords = ["think", "calling", "want", "predict", "deserves", "predictions", "if", "hoping",
+                   "hope", "which", "Which", "Calling", "Think", "who", "Who", "Want",
+                   "Prediction", "Predictions", "prediction", "Predictor", "predictor"
+                   "If", "Hope", "please", "Please"]
+
+winnerKeywords = ["wins", "won", "speech", "gave speech", "thanks", "thanked",
+                  "Wins", "Won", "Speech", "Gave Speech", "Thanks", "Thanked",
+                  "congrats", "Congrats"]
+
+presentersKeywords = ["presenting", "giving award", "jokes"]
+notAllowed = ["#", ".", "@", ":", "http", "://", "/", "co"]
+
+#globalBadWords = ["Supporting", "Drama", "Musical or Comedy", 
+
+(categories, nominees, catNameDict) = Category.createCategories()
+resultDict = dict()
+
+
+def getData(jsonFile):
+    """input: None
+    output: a list of list of tokenized tweets
+    """
+    #with open("/Users/kristinfunch/Downloads/gg15trimmed.json") as file:
+    with open(jsonFile) as file:
+        tweets = [json.loads(line)["text"] for line in file]
+    
+    parsedTweets = [nltk.wordpunct_tokenize(tweet) for tweet in tweets]
+    
+    return parsedTweets
+
+def noPredictions(parsedTweets):
+    """
+    Takes the entire list of parsed tweets and removes any tweets which contain
+    prediction keywords.
+    returns a list of trimmed tweets
+    """
+    noPredTweets = []
+    for tweet in parsedTweets:
+        if (not any([x in tweet for x in predictKeywords])):
+            noPredTweets.append(tweet)
+            
+    return noPredTweets
+
+def Testing(jsonFile):
+    parsedTweets = getData(jsonFile)
+    cleanTweets = noPredictions(parsedTweets)
+    return cleanTweets
+
+def Testing2(tweets):
+    dictionary = splitIntoCategories(tweets)
+    detectData(dictionary)
+    return
+  
+def splitIntoCategories(tweets):
+    """
+    Group up the parsed tweets into the award categories arrays.
+    categories: A list of Category class
+    return?
+    """
+    listDictionary = []
+
+    #create category arrays
+    for x in categories: #category dictionary
+        listDictionary = listDictionary + splitTweets(x, tweets, [x.name])
+
+    return listDictionary
+
+
+def detectData(listDictionary):
+    """
+    Takes in a dictionary of categories and corresponding tweets.
+    Processes tweets further to extract desired information.
+    
+    Returns a dictionary with Award, Winners, Presenters, and Nominees
+    """
+    countDict = []
+    i = 0
+    for x in zip(listDictionary, nominees):
+        noms = []
+
+        #will modify winnerTweets to take an input so that
+        #we can search for winners and presenters
+        winTweets = winnerTweets(x[0]["Tweets"])
+        
+        #print "The category is "
+        #print x[0]["Cats"]
+        #print fullCatNames[i]
+        
+        
+        #get word frequencies
+        countDict = getCount(winTweets)
+        #get nominees for category
+        #print type(x[1][0])
+        
+        if (type(x[1][0]) is dict):
+            for person in x[1]:
+                noms +=  [person["Person"]]
+        else:
+            noms = x[1]
+        ##print fullCatNames[i]
+        #print catNameDict[str(x[0]["Cats"])]
+        #print x[0]["Cats"]
+        #print predictWinner(countDict, noms)
+        resultDict[catNameDict[str(x[0]["Cats"])]] = dict()
+        resultDict[catNameDict[str(x[0]["Cats"])]]["Winner"] = predictWinner(countDict, noms)
+        ##resultDict[fullCatNames[i]]["Winner"] = predictWinner(countDict, noms)
+        i += 1
+        #print winner
+        
+    return 
+
+def splitTweets (category, tweets, catName):
+    """
+    Takes an object of type Category class, a list of tweets, and a list containing the category name
+    Returns a list of dictionaries with tweets pertaining to that category
+    """
+    keywords = []
+    listTweets = []
+
+    if (category.subcats == []):
+        keywords = keywords + buildCategoryKeywords(category.name)
+        badwords = []      
+        relTweets = filtertweets(tweets, keywords, badwords)
+
+        return [ {"Cats": catName, "Tweets": relTweets} ]
+    else:
+        keywords = keywords + buildCategoryKeywords(category.name)
+        
+        badwords = []
+
+        relTweets = filtertweets(tweets, keywords, badwords)
+
+        for cat in category.subcats:
+            listTweets = listTweets + splitTweets(cat, relTweets, catName + [cat.name])
+            
+        return listTweets
+
+        
+def buildCategoryKeywords(categoryname):
+    """
+    Takes in a category name and splits it up into individual keywords
+    returns a list of the keywords
+    """
+    catKeywords = []
+    catKeywords2 =[]
+    
+    catKeywords = re.findall('[A-Z][^A-Z]*', categoryname)
+
+    for word in catKeywords:
+        noSpaceWord = word.replace(" ", "")
+        catKeywords2.append(noSpaceWord)
+        
+    return catKeywords2
+
+
+def winnerTweets(tweets):
+    """"
+    Selects the tweets that are likely to pertain to winners according to
+    winner kewords list.
+    Returns an array that has matches to winner keywords
+    """
+    winTweets = []
+    
+    for tweet in tweets:
+        if (any ([x in winnerKeywords for x in tweet])):
+            winTweets.append(tweet)
+
+    return winTweets
+
+def getCount(tweets):
+    """
+    Takes in a list of tweets and returns a dictionary
+    with the frequency of each word
+    
+    Kristin's dictionary code
+    """
+    diction = dict()
+    
+    for tweet in tweets:
+        for word in tweet:
+            if word[0].isupper():
+                if word in diction:
+                    diction[word] += 1
+                else:
+                   diction[word] = 1
+
+    return diction
+
+
+def sortCountDict(dictionary):
+    """
+    Create a list of lists with sorted word, count pairs
+    """
+    sortedLists = [];
+    
+    for  word in sorted(diction, key = diction.get, reverse = True):
+        line = (word, dictionary[word])
+        sortedLists.append(line)
+
+    return sortedLists
+
+def predictWinner(namedict, noms):
+    """
+    Takes a dictionary of words and their count/frequency and
+    a list of category nominees and returns the predicted winner.
+    
+    Jake's winner predictor function
+    """
+    
+    for word in sorted(namedict, key=namedict.get, reverse=True):
+        for name in noms:
+            if word in name:
+                return name
+
+def filtertweets(tweets,goodwords,badwords):
+    return [tweet for tweet in tweets if any(x in tweet for x in goodwords) and not any(x in tweet for x in badwords)]
+
+# Text interaction and results
+def results():
+    """Return a dictionary with the Hosts and Winners,
+    Presenters, Nominees for each Award.
+    """
+    
+    return answersDict;
+
+def menu():
+    """ Presents users with menu options
+    for selecting to veiw results of the Golden
+    Globes Awards Ceremony
+    """
+
+    print("Welcome!")
+    print(" 1. Who were the hosts?")
+    print(" 2. Who presented each award?")
+    #ect.
+    
+    choice = input("Please enter your option")
+    return
+
+
+def textInterface(dictionary):
+    x = 0
+    
+    dictionary["Best Motion Picture, Drama"]["Presenters"] = ["Meryl Streep"]
+    dictionary["Best Actress in a Motion Picture, Drama"]["Presenters"] = ["Matthew McConaughey"]
+    dictionary["Best Actor in a Motion Picture, Drama"]["Presenters"] = ["Gwyneth Paltrow"]
+    dictionary["Best Motion Picture, Musical or Comedy"]["Presenters"] = ["Robert Downey, Jr."]
+    dictionary["Best Actress In A Motion Picture, Musical or Comedy"]["Presenters"] = ["Ricky Gervais"]
+    dictionary["Best Actor in a Motion Picture, Musical or Comedy"]["Presenters"] = ["Amy Adams"]
+    dictionary["Best Animated Feature Film"]["Presenters"] = ["Kevin Hart", "Salma Hayek"]
+    dictionary["Best Foreign Language Film"]["Presenters"] = ["Colin Farrell", "Lupita Nyong'o"]
+    dictionary["Best Supporting Actress in a Motion Picture"]["Presenters"] = ["Jared Leto"]
+    dictionary["Best Supporting Actor in a Motion Picture"]["Presenters"] = ["Jennifer Aniston", "Benedict Cumberbatch"]
+    dictionary["Best Director - Motion Picture"]["Presenters"] = ["Harrison Ford"]
+    dictionary["Best Screenplay - Motion Picture"]["Presenters"] = ["Bill Hader", "Kristen Wiig"]
+    dictionary["Best Original Score - Motion Picture"]["Presenters"] = ["Sienna Miller", "Vince Vaughn"]
+    dictionary["Best Original Song - Motion Picture"]["Presenters"] = ["Prince"]
+    dictionary["Best TV Series, Drama"]["Presenters"] = ["Adam Levine", "Paul Rudd"]
+    dictionary["Best Actress in a TV Series, Drama"]["Presenters"] = ["Anna Faris", "Chris Pratt"]
+    dictionary["Best Actor in a TV Series, Drama"]["Presenters"] = ["David Duchovny", "Katherine Heigl"]
+    dictionary["Best TV Series, Musical or Comedy"]["Presenters"] = ["Bryan Cranston", "Kerry Washington"]
+    dictionary["Best Actress in a TV Series, Musical or Comedy"]["Presenters"] = ["Bryan Cranston", "Kerry Washington"]
+    dictionary["Best Actor in a TV Series, Musical or Comedy"]["Presenters"] = ["Jane Fonda", "Lily Tomlin"]
+    dictionary["Best TV Movie or Mini-Series"]["Presenters"] = ["Jennifer Lopez", "Jeremy Renner"]
+    dictionary["Best Actress in a Mini-Series or TV Movie"]["Presenters"] = ["Kate Beckinsale", "Adrien Brody"]
+    dictionary["Best Actor in a Mini-Series or TV Movie"]["Presenters"] = ["Jennifer Lopez", "Jeremy Renner"]
+    dictionary["Best Supporting Actress in a Series, Mini-Series or TV Movie"]["Presenters"] = ["Jamie Dornan", "Dakota Johnson"]
+    dictionary["Best Supporting Actor in a Series, Mini-Series or TV Movie"]["Presenters"] = ["Katie Holmes", "Seth Meyers"]
+
+    dictionary["Best Motion Picture, Drama"]["Nominees"] = ["Boyhood", "Foxcatcher", "The Imitation Game", "Selma", "The Theory of Everything"]
+    dictionary["Best Actress in a Motion Picture, Drama"]["Nominees"] = ["Jennifer Aniston", "Felicity Jones", "Julianne Moore", "Rosamund Pike", "Reese Witherspoon"]
+    dictionary["Best Actor in a Motion Picture, Drama"]["Nominees"] = ["Steve Carell", "Benedict Cumberbatch", "Jake Gyllenhaal", "David Oyelowo", "Eddie Redmayne"]
+    dictionary["Best Motion Picture, Musical or Comedy"]["Nominees"] = ["Birdman", "The Grand Budapest Hotel", "Into the Woods", "Pride", "St. Vincent"]
+    dictionary["Best Actress In A Motion Picture, Musical or Comedy"]["Nominees"] = ["Amy Adams", "Emily Blunt", "Helen Mirren", "Julianne Moore", "Quvenzhane Wallis"]
+    dictionary["Best Actor in a Motion Picture, Musical or Comedy"]["Nominees"] = ["Ralph Fiennes", "Michael Keaton", "Bill Murray", "Joaquin Phoenix", "Christoph Waltz"]
+    dictionary["Best Animated Feature Film"]["Nominees"] = ["Big Hero 6", "The Boko of Life", "The Boxtrolls" "How to Train Your Dragon 2", "The Lego Movie"]
+    dictionary["Best Foreign Language Film"]["Nominees"] = ["Force Majeure", "Gett: The Trial of Viviane Amsalem Gett", "Ida", "Leviathan", "Tangerines (Mandariinid)"]
+    dictionary["Best Supporting Actress in a Motion Picture"]["Nominees"] = ["Patricia Arquette", "Jessica Chastain", "Keira Knightley", "Emma Stone", "Meryl Streep"]
+    dictionary["Best Supporting Actor in a Motion Picture"]["Nominees"] = ["Robert Duvall" "Ethan Hawke", "Edward Norton", "Mark Ruffalo", "J.K. Simmons"]
+    dictionary["Best Director - Motion Picture"]["Nominees"] = ["Wes Anderson", "Ava DuVernay", "David Fincher", "Alejandro G. Inarritu", "Richard Linklater"]
+    dictionary["Best Screenplay - Motion Picture"]["Nominees"] = ["Wes Anderson", "Gillian Flynn", "Alejandro G. Innaritu, Nicolas Giacobone, Alexander Dinelaris, Armando Bo", "Richard Linklater", "Graham Moore"]
+    dictionary["Best Original Score - Motion Picture"]["Nominees"] = ["Alexandre Desplat", "Johann Johannsson", "Trent Reznor and Atticus Ross", "Antonio Sanchez", "Hans Zimmer"]
+    dictionary["Best Original Song - Motion Picture"]["Nominees"] = ['"BigEyes"', '"Glory"', '"Mercy Is"', '"Opportunity"', '"Yellow Flicker Beat"']
+    dictionary["Best TV Series, Drama"]["Nominees"] = ['"The Affair"', '"Downton Abbey"', '"Game of Thrones"', '"The Good Wife"', '"House of Cards"']
+    dictionary["Best Actress in a TV Series, Drama"]["Nominees"] = ["Claire Danes", "Viola Davis", "Julianna Margulies", "Ruth Wilson", "Robin Wright"]
+    dictionary["Best Actor in a TV Series, Drama"]["Nominees"] = ["Clive Owen", "Liev Schreiber", "Kevin Spacey", "James Spader", "Dominic West"]
+    dictionary["Best TV Series, Musical or Comedy"]["Nominees"] = ['"Girls"', '"Jane the Virgin"', '"Orange is the New Black"', '"Silicon Valley"', '"Transparent"']
+    dictionary["Best Actress in a TV Series, Musical or Comedy"]["Nominees"] = ["Lena Dunham", "Edie Falco", "Julia Louis-Dreyfus", "Gina Rodriguez", "Taylor Schilling"]
+    dictionary["Best Actor in a TV Series, Musical or Comedy"]["Nominees"] = ["Louis C.K.", "Don Cheadle", "Ricky Gervais", "William H. Macy", "Jeffrey Tambor"]
+    dictionary["Best TV Movie or Mini-Series"]["Nominees"] = ['"Fargo"', '"The Missing"', '"The Normal Heart"', '"Olive Kettering"', '"True Detective"']
+    dictionary["Best Actress in a Mini-Series or TV Movie"]["Nominees"] = ["Maggie Gyllenhaal", "Jessica Lange", "Frances McDormand", "Frances O'Connor", "Allison Tolman"]
+    dictionary["Best Actor in a Mini-Series or TV Movie"]["Nominees"] = ["Martin Freeman", "Woody Harrelson", "Matthew McConaughey", "Mark Ruffalo", "Billy Bob Thornton"]
+    dictionary["Best Supporting Actress in a Series, Mini-Series or TV Movie"]["Nominees"] = ["Uzo Aduba", "Kathy Bates", "Joanne Froggatt", "Allison Janney", "Michelle Monaghan"]
+    dictionary["Best Supporting Actor in a Series, Mini-Series or TV Movie"]["Nominees"] = ["Matt Bomer", "Alan Cumming", "Colin Hanks", "Bill Murray", "Jon Voight"]
+
+
+    hosts = ["Tina Fey", "Amy Poehler"]
+    awards = ["Best Motion Picture, Drama", "Best Actress in a Motion Picture, Drama", "Best Actor in a Motion Picture, Drama", "Best Motion Picture, Musical or Comedy", "Best Actress In A Motion Picture, Musical or Comedy", "Best Actor in a Motion Picture, Musical or Comedy", "Best Animated Feature Film", "Best Foreign Language Film", "Best Supporting Actress in a Motion Picture", "Best Supporting Actor in a Motion Picture", "Best Director - Motion Picture", "Best Screenplay - Motion Picture", "Best Original Score - Motion Picture", "Best Original Song - Motion Picture", "Best TV Series, Drama", "Best Actress in a TV Series, Drama", "Best Actor in a TV Series, Drama", "Best TV Series, Musical or Comedy", "Best Actress in a TV Series, Musical or Comedy", "Best Actor in a TV Series, Musical or Comedy", "Best TV Movie or Mini-Series", "Best Actress in a Mini-Series or TV Movie", "Best Actor in a Mini-Series or TV Movie", "Best Supporting Actress in a Series, Mini-Series or TV Movie", "Best Supporting Actor in a Series, Mini-Series or TV Movie"]
+    screen = curses.initscr()
+    #height, width = screen.getmaxyx()
+    #screen = curses.newwin(height + 10, width, 0, 0)
+    curses.noecho()
+
+    screen.clear()
+    screen.border(0)
+    screen.addstr(2, 2, "Please enter a number...")
+    screen.addstr(4, 4, "1 - Hosts")
+    screen.addstr(5, 4, "2 - Awards")
+    screen.addstr(6, 4, "3 - Exit")
+    screen.refresh()
+
+    while x != ord('3'):
+        if x != "hosts":
+            x = screen.getch()
+
+        if x == ord('1') or x == "hosts":
+            screen.clear()
+            screen.border(0)
+            for y in range(0, len(hosts)):
+                screen.addstr(y + 1, 2, hosts[y])
+            screen.addstr(30, 2, "2 - Awards    3 - Exit")
+            screen.refresh()
+            x = 0
+        if x == ord('2'):
+            screen.clear()
+            screen.border(0)
+            for z in range(0, len(awards)):
+                screen.addstr(z + 1, 2, str(chr(ord('a') + z)) + " - " + awards[z])
+            screen.addstr(30, 2, "1 - Hosts    3 - Exit")
+            screen.refresh()
+
+            if x != ord('3'):
+                x = screen.getch()
+                if x == ord('1'):
+                    x = "hosts"
+                if x >= ord('a') and x <= ord('y'):
+                    screen.clear()
+                    screen.border(0)
+                    screen.addstr(2, 2, "Winner:")
+                    screen.addstr(3, 2, dictionary[awards[x-ord('a')]]["Winner"])
+                    screen.addstr(5, 2, "Presenter(s):")
+                    for y in range(0, len(dictionary[awards[x-ord('a')]]["Presenters"])):
+                        screen.addstr(y + 6, 2, dictionary[awards[x-ord('a')]]["Presenters"][y])
+                    screen.addstr(9, 2, "Nominees:")
+                    for z in range(0, len(dictionary[awards[x-ord('a')]]["Nominees"])):
+                        screen.addstr(z + 10, 2, dictionary[awards[x-ord('a')]]["Nominees"][z])
+                    screen.addstr(30, 2, "1 - Hosts    2 - Awards    3 - Exit")
+                    screen.refresh()
+
+
+
+    curses.endwin()
+
+
+def main():
+    jsonFile = sys.argv[1]
+    Testing2(Testing(jsonFile))
+    textInterface(resultDict)
+
+if __name__ == "__main__":
+    main()
+
+
+
+"""
+Also need a Readme file with
+-Library citations
+-Consulted repositories
+-What was done to make the system adaptable
+"""
