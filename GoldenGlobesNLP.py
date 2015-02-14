@@ -5,7 +5,9 @@ import json
 import nltk
 import re
 import Category
-import JakeFunctions
+from JakeFunctions import filtertweets
+import emojiProcessing
+import sys
 
 predictKeywords = ["think", "calling", "want", "predict", "predictions", "if", "hoping",
                    "hope", "which", "Which", "Calling", "Think", "who", "Who", "Want",
@@ -29,17 +31,27 @@ globalBadWords = ["Supporting", "Drama", "Musical", "Comedy", "Actress", "Actor"
                   "Movie", "TV", "Mini-series"]
                   
 
-(categories, nominees, catList) = Category.createCategories()
+def main():
+    if len(sys.argv) > 2:
+        filename = sys.argv[1]
 
+    getData(filename)
 
-def getData():
-    """input: None
+    return
+
+def getData(filename):
+    """input: filename of the json object with tweets
     output: a list of list of tokenized tweets
     """
-    with open("C:\Users\Rosio\Desktop\goldenglobes2015NEW.json\gg15trimmed.json") as file:
+    with open(filename) as file:
         tweets = [json.loads(line)["text"] for line in file]
     
     parsedTweets = [nltk.wordpunct_tokenize(tweet) for tweet in tweets]
+
+    if ("15" in filename):
+        (categories, nominees, catList) = Category.createCategories()
+    else:
+        (categories, nominees, catList) = Category.createCategories()
     
     return parsedTweets
 
@@ -90,6 +102,18 @@ def detectData(listDictionary):
     Returns a dictionary with Award, Winners, Presenters, and Nominees
     """
     dictionary = dict()
+    answers = dict()
+    winnersList = []
+    categoryList = []
+    presentersList = []
+    nomineesList = []
+
+    answers = getMetaData(answers)
+    answers["data"] = dict()
+    answers["data"]["unstructured"] = dict()
+    answers["data"]["unstructured"]["hosts"] = ["test1", "test2"]
+    answers["data"]["structured"]= dict()
+    
         
     for x in zip(listDictionary, nominees):
         noms = []
@@ -111,19 +135,61 @@ def detectData(listDictionary):
         winner = getWinner(x[0]["Tweets"], noms, notes)
         presenters = getPresenter(x[0]["Tweets"])
 
-        #Save all answers
+        #Save answer for json
+        winnersList = winnersList + [winner]
+        categoryList = categoryList + [category]
+        presentersList = presentersList + presenters
+        nomineesList = nomineesList + noms
+
+        #Save all answers for text interface
         dictionary[category] = dict()
         dictionary[category]["Winner"] = winner
         dictionary[category]["Presenters"] = presenters
         dictionary[category]["Nominees"] = noms
 
+        answers["data"]["structured"][category] = dict()
+        answers["data"]["structured"][category]["Nominees"] = noms
+        answers["data"]["structured"][category]["Winner"] = winner
+        answers["data"]["structured"][category]["Presenters"] = presenters
+        
         print winner
         #print dictionary
         """
         with open("results.json", "w") as file:
             json.dump(dictionary, file)
-        """     
+        """
+        
+    answers["data"]["unstructured"]["winners"] = winnersList
+    answers["data"]["unstructured"]["awards"] = categoryList
+    answers["data"]["unstructured"]["presenters"] = presentersList
+    answers["data"]["unstructured"]["nominees"] = nomineesList
+
+
+    print answers
+    """
+    with open("answers.json", "w") as file:
+            json.dump(answers, file)
+    """
     return dictionary
+
+def getMetaData(dictionary):
+    dictionary["metadata"] = dict()
+
+    dictionary["metadata"]["year"] = 2015
+    
+    dictionary["metadata"]["hosts"] = dict()
+    dictionary["metadata"]["hosts"]["method"] = "detected"
+    dictionary["metadata"]["hosts"]["method_description"] = " detected Hosts"
+
+    dictionary["metadata"]["nominees"] = dict()
+    dictionary["metadata"]["nominees"]["method"] = "scraped"
+    dictionary["metadata"]["nominees"]["method_description"] = "scraped To get the nominees TEST"
+
+    dictionary["metadata"]["awards"] = dict()
+    dictionary["metadata"]["awards"]["method"] = "scraped"
+    dictionary["metadata"]["awards"]["method_description"] = "To scraped get the awards we"
+
+    return dictionary    
 
 def getWinner(tweets, nominees, notes):
     """
@@ -132,6 +198,11 @@ def getWinner(tweets, nominees, notes):
     """
     countDict = []
     winTweets = winnerTweets(tweets)
+    
+    feelings = []
+    feelings = filterEmojis(winTweets)
+    print feelings["Positivity score"]
+    
     #get word frequencies
     countDict = getCount(winTweets)
     winner = predictWinner(countDict, nominees, notes)
@@ -174,7 +245,7 @@ def splitTweets (category, tweets, catName):
             if word not in keywords:
                 badwords = badwords + [word]
         
-        relTweets = filtertweets(tweets, keywords, [])
+        relTweets = filtertweets(tweets, keywords, badwords)
 
         #print keywords
         
@@ -280,30 +351,6 @@ def predictWinner(namedict, noms, notes):
         for name in noms:
             if word in name:
                 return name
-
-
-# Text interaction and results
-def results():
-    """Return a dictionary with the Hosts and Winners,
-    Presenters, Nominees for each Award.
-    """
-    
-    return answersDict;
-
-def menu():
-    """ Presents users with menu options
-    for selecting to veiw results of the Golden
-    Globes Awards Ceremony
-    """
-
-    print("Welcome!")
-    print(" 1. Who were the hosts?")
-    print(" 2. Who presented each award?")
-    #ect.
-    
-    choice = input("Please enter your option")
-    return
-
 
 
 """
