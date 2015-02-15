@@ -5,11 +5,11 @@ import json
 import nltk
 import re
 import Category
-from JakeFunctions import *
-from emojiProcessing import parseRange
-from emojiProcessing import parseHex
-from emojiProcessing import prepareEmojiLists
-from emojiProcessing import filterEmojis
+import JakeFunctions as JF
+#from emojiProcessing import parseRange
+#from emojiProcessing import parseHex
+#from emojiProcessing import prepareEmojiLists
+#from emojiProcessing import filterEmojis
 import sys
 from Scraping import scrapeResultsforYear
 
@@ -42,7 +42,7 @@ def main():
         filename = sys.argv[1]
 
     (parsedTweets, categories, nominees, catList) = loadTweetsCategoriesNominees(filename)
-    answers = searchCorpus(parsedTweets, categories, nominees, catList)
+    (answers, interfaceDict) = searchCorpus(parsedTweets, categories, nominees, catList)
 
     with open("answers.json", "w+") as file:
             json.dump(answers, file)
@@ -54,7 +54,6 @@ def loadParsedTweets(filename):
         tweets = [tweet["text"] for tweet in jsonObj]
     parsedTweets = [nltk.wordpunct_tokenize(tweet) for tweet in tweets]
     return parsedTweets
-
 
 def getData(filename):
     """input: filename of the json object with tweets
@@ -78,7 +77,7 @@ def getData(filename):
             (categories, nominees, catList) = Category.createCategories(fn + ".json")
         
     
-    return (parsedTweets, categories, nominees, catList)
+    return (tweets, categories, nominees, catList)
 
 def noPredictions(parsedTweets, categories, nominees, catList):
     """
@@ -101,8 +100,8 @@ def loadTweetsCategoriesNominees(filename):
 def searchCorpus(tweets, categories, nominees, catList):
     dictionary = splitIntoCategories(tweets, categories)
     hosts = getHosts(tweets)
-    resultsDict = detectData(dictionary, categories, nominees, catList, hosts)
-    return resultsDict
+    (resultsDict, interfaceDict) = detectData(dictionary, categories, nominees, catList, hosts)
+    return (resultsDict, interfaceDict)
   
 def splitIntoCategories(tweets, categories):
     """
@@ -145,8 +144,8 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
         noms = []
         notes = []
 
-        print "The category is "
-        print x[0]["Cats"]
+        #print "The category is "
+        #print x[0]["Cats"]
 
         category = getCategory(x[0]["Cats"])
         
@@ -187,7 +186,7 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
         answers["data"]["structured"][category]["Winner"] = winner
         answers["data"]["structured"][category]["Presenters"] = presenters
         
-        print winner
+        #print winner
         #print dictionary
         """
         with open("results.json", "w") as file:
@@ -201,11 +200,11 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
 
 
     #print answers
-    """
-    with open("answers.json", "w") as file:
+    
+    with open("answersfor2013.json", "w+") as file:
             json.dump(answers, file)
-    """
-    return answers
+    
+    return (answers, dictionary)
 
 def getMetaData(dictionary):
     dictionary["metadata"] = dict()
@@ -232,14 +231,14 @@ def getWinner(tweets, nominees, notes):
     and category related tweets
     """
     countDict = []
-    winTweets = hardfiltertweets(tweets, winnerKeywords, [])
+    winTweets = JF.hardfiltertweets(tweets, winnerKeywords, [])
 
-    print "Example of Winner Tweets"
-    print winTweets[1]
+    #print "Example of Winner Tweets"
+    #print winTweets[1]
     
     feelings = []
     feelings = filterEmojis(winTweets)
-    print feelings["Positivity score"]
+    #print feelings["Positivity score"]
     
     #get word frequencies
     countDict = getCount(winTweets)
@@ -252,11 +251,12 @@ def getPresenters(tweets, noms):
     category relevant tweets
     """
     badwords = ["Golden Globes"] + noms
-    presTweets = hardfiltertweets(tweets, presenterKeywords, [])
-    wordDict = buildworddict(presTweets, exclude)
-    nameList = buildnamedict(presTweets, badwords)
+    
+    presTweets = JF.hardfiltertweets(tweets, presentersKeywords, [])
+    wordDict = JF.buildworddict(presTweets, exclude)
+    nameList = JF.buildnamedict(presTweets, badwords)
 
-    presenters = predictNames(wordDict, nameList, 2)
+    presenters = JF.predictNames(wordDict, nameList, 2)
     return presenters
 
 
@@ -264,12 +264,12 @@ def getHosts(tweets):
     """
     Takes the corpus of tweets and returns a list of the predicted hosts
     """
-    hostTweets = hardfiltertweets(tweets, hostKeywords, [] )
+    hostTweets = JF.hardfiltertweets(tweets, hostKeywords, [] )
     badwords = ["Golden Globes"]
-    wordDict = buildworddict(hostTweets, exclude)
-    nameList = buildnamedict(hostTweets, badwords)
+    wordDict = JF.buildworddict(hostTweets, exclude)
+    nameList = JF.buildnamedict(hostTweets, badwords)
 
-    hosts = predictNames(wordDict, nameList, 2)
+    hosts = JF.predictNames(wordDict, nameList, 2)
 
     return hosts
 
@@ -298,12 +298,12 @@ def splitTweets (category, tweets, catName):
             if word not in keywords:
                 badwords = badwords + [word]
         
-        print "Badwords"
-        print badwords
-        print "Keywords"
-        print keywords
+        #print "Badwords"
+        #print badwords
+        #print "Keywords"
+        #print keywords
         
-        relTweets = softfiltertweets(tweets, keywords, badwords, 0.5)
+        relTweets = JF.softfiltertweets(tweets, keywords, badwords, 0.5)
 
         #print keywords
         
@@ -313,7 +313,7 @@ def splitTweets (category, tweets, catName):
         
         badwords = []
 
-        relTweets = filtertweets(tweets, keywords, badwords)
+        relTweets = JF.softfiltertweets(tweets, keywords, badwords, 0.5)
         
         for cat in category.subcats:
             listTweets = listTweets + splitTweets(cat, relTweets, catName + [cat.name])
