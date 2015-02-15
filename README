@@ -2,6 +2,8 @@
 Team 2, Golden Globes Assignment
 Kristin Funch, Rosio Macedo, Luke Olney, Jacob Samson
 
+To run, enter the command “python GoldenGlobesNLP.py [filename]”, where filename is the json file containing tweets for the year you would like analyzed.
+
 Our project depends on the json, nltk, re, curses, BeautifulSoup, locale, urllib2, and subprocess libraries.
 
 We did not consult with any repositories in creating our solution.

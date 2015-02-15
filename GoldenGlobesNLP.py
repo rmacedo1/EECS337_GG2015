@@ -125,6 +125,15 @@ def splitIntoCategories(tweets, categories):
 
     return listDictionary
 
+def removeDuplicates(tweets):
+    seen = set()
+    uniq = []
+    for tweet in tweets:
+        x = " ".join(tweet)
+        if x not in seen:
+            uniq.append(tweet)
+            seen.add(x)
+    return uniq
 
 def detectData(listDictionary, categories, nominees, catList, hosts):
     """
@@ -134,14 +143,13 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
     Returns a dictionary with Award, Winners, Presenters, and Nominees
     """
     dictionary = {}
-    answers = {}
+    answers = getMetaData({})
     funGoals = {}
     winnersList = []
     categoryList = []
     presentersList = []
     nomineesList = []
 
-    answers = getMetaData(answers)
     answers["data"] = dict()
     answers["data"]["unstructured"] = dict()
     answers["data"]["unstructured"]["hosts"] = hosts
@@ -149,10 +157,12 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
     
 
     for x in zip(listDictionary, nominees):
+
         noms = []
         notes = []
 
         category = getCategory(x[0]["Cats"], catList)
+        print category
         
         #get nominees for category
         if (type(x[1][0]) is dict):
@@ -168,6 +178,9 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
         #determine winners and presenters
         (winner, feelings) = getWinner(x[0]["Tweets"], noms, notes)
         presenters = getPresenters(x[0]["Tweets"], noms)
+
+        #import tests
+        #print "Duplicates in fungoals: " + str(tests.checkForDuplicates(feelings["Positive"]))
 
         #Prepare fungoals
         funGoals[category] = {};
@@ -228,14 +241,12 @@ def getWinner(tweets, nominees, notes):
     Returns the predicted winner given the nominees
     and category related tweets
     """
-    countDict = []
     winTweets = JF.hardfiltertweets(tweets, winnerKeywords, [])
 
     #print "Example of Winner Tweets"
     #print winTweets[1]
     
-    feelings = []
-    feelings = filterEmojis(winTweets)
+    feelings = filterEmojis(removeDuplicates(winTweets))
     #print feelings["Positivity score"]
     
     #get word frequencies
