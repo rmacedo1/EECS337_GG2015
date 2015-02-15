@@ -47,15 +47,21 @@ def main():
         json.dump(funGoals, file)
 
 
+def loadParsedTweets(filename):
+    with open(filename) as fl:
+        tweets = [json.loads(line)["text"] for line in fl]
+    parsedTweets = [nltk.wordpunct_tokenize(tweet) for tweet in tweets]
+    return parsedTweets
+
+
 def getData(filename):
     """input: filename of the json object with tweets
     output: a list of list of tokenized tweets
     """
-    with open(filename) as fl:
-        tweets = [json.loads(line)["text"] for line in fl]
     
-    parsedTweets = [nltk.wordpunct_tokenize(tweet) for tweet in tweets]
+    tweets = loadParsedTweets(filename);
 
+    # Try to figure out which scraped results to use
     fn = "categories_nominees_winners";
     if ("15" in filename):
         (categories, nominees, catList) = Category.createCategories(fn + ".json")
