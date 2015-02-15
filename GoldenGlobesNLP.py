@@ -5,7 +5,7 @@ import json
 import nltk
 import re
 import Category
-from JakeFunctions import softfiltertweets
+from JakeFunctions import *
 from emojiProcessing import parseRange
 from emojiProcessing import parseHex
 from emojiProcessing import prepareEmojiLists
@@ -23,7 +23,7 @@ winnerKeywords = ["wins", "won", "speech",
                   "Wins", "Won",
                   "congrats", "Congrats", "winner", "Winner"]
 
-presentersKeywords = ["presenting", "giving award", "jokes"]
+presentersKeywords = ["presenting", "giving", "presenters", "Presenters", "Presenting"]
 notAllowed = ["#", ".", "@", ":", "http", "://", "/", "co"]
 
 exclude = ["Golden", "Globes", "RT", "Best", "GoldenGlobes", "The", "For",
@@ -32,6 +32,8 @@ exclude = ["Golden", "Globes", "RT", "Best", "GoldenGlobes", "The", "For",
            "Winner", "Supporting", "Globe", "Or", "At", "I", "G"]
 
 globalBadWords = ["Supporting", "Actors", "Actress"]
+
+hostKeywords
                   
 
 def main():
@@ -97,7 +99,8 @@ def loadTweetsCategoriesNominees(filename):
 
 def searchCorpus(tweets, categories, nominees, catList):
     dictionary = splitIntoCategories(tweets, categories)
-    resultsDict = detectData(dictionary, categories, nominees, catList)
+    hosts = getHosts(tweets)
+    resultsDict = detectData(dictionary, categories, nominees, catList, hosts)
     return resultsDict
   
 def splitIntoCategories(tweets, categories):
@@ -116,7 +119,7 @@ def splitIntoCategories(tweets, categories):
     return listDictionary
 
 
-def detectData(listDictionary, categories, nominees, catList):
+def detectData(listDictionary, categories, nominees, catList, hosts):
     """
     Takes in a dictionary of categories and corresponding tweets.
     Processes tweets further to extract desired information.
@@ -133,7 +136,7 @@ def detectData(listDictionary, categories, nominees, catList):
     answers = getMetaData(answers)
     answers["data"] = dict()
     answers["data"]["unstructured"] = dict()
-    answers["data"]["unstructured"]["hosts"] = ["test1", "test2"]
+    answers["data"]["unstructured"]["hosts"] = hosts
     answers["data"]["structured"]= dict()
     
         
@@ -159,7 +162,7 @@ def detectData(listDictionary, categories, nominees, catList):
 
         #determine winners and presenters
         winner = getWinner(x[0]["Tweets"], noms, notes)
-        presenters = getPresenter(x[0]["Tweets"])
+        presenters = getPresenter(x[0]["Tweets"], noms)
 
         #Prepare fungoals
         funGoals[category] = {};
@@ -258,7 +261,15 @@ def getPresenter(tweets):
     presenters = predictPresenters(countDict)
     return presenters
 
-def getHosts()
+def getHosts(tweets):
+    badwords = ["Golden Globes"]
+    
+    wordDict = buildworddict(tweets, exclude)
+    nameList = buildnamedict(tweets, badwords)
+
+    hosts = predictNames(wordDict, nameList, 2)
+
+    return hosts
 
 def getCategory(listOfCat):
     """
