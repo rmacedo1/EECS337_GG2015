@@ -5,7 +5,7 @@ import json
 import nltk
 import re
 import Category
-from JakeFunctions import filtertweets
+from JakeFunctions import softfiltertweets
 from emojiProcessing import parseRange
 from emojiProcessing import parseHex
 from emojiProcessing import prepareEmojiLists
@@ -31,7 +31,7 @@ exclude = ["Golden", "Globes", "RT", "Best", "GoldenGlobes", "The", "For",
            "Actor", "Actress", "Wins", "Congrats", "A", "Movie",
            "Winner", "Supporting", "Globe", "Or", "At", "I", "G"]
 
-globalBadWords = ["Supporting"]
+globalBadWords = ["Supporting", "Actors", "Actress"]
                   
 
 def main():
@@ -39,12 +39,10 @@ def main():
         filename = sys.argv[1]
 
     (parsedTweets, categories, nominees, catList) = loadTweetsCategoriesNominees(filename)
-    (answers, funGoals) = searchCorpus(parsedTweets, categories, nominees, catList)
+    answers = searchCorpus(parsedTweets, categories, nominees, catList)
 
     with open("answers.json", "w+") as file:
-        json.dump(answers, file)
-    with open("funGoals.json", "w+") as file:
-        json.dump(funGoals, file)
+            json.dump(answers, file)
 
 
 def loadParsedTweets(filename):
@@ -99,8 +97,8 @@ def loadTweetsCategoriesNominees(filename):
 
 def searchCorpus(tweets, categories, nominees, catList):
     dictionary = splitIntoCategories(tweets, categories)
-    (resultsDict, funGoals) = detectData(dictionary, categories, nominees, catList)
-    return (resultsDict, funGoals)
+    resultsDict = detectData(dictionary, categories, nominees, catList)
+    return resultsDict
   
 def splitIntoCategories(tweets, categories):
     """
@@ -137,8 +135,7 @@ def detectData(listDictionary, categories, nominees, catList):
     answers["data"]["unstructured"] = dict()
     answers["data"]["unstructured"]["hosts"] = ["test1", "test2"]
     answers["data"]["structured"]= dict()
-
-    funGoals = {};
+    
         
     for x in zip(listDictionary, nominees):
         noms = []
@@ -161,7 +158,7 @@ def detectData(listDictionary, categories, nominees, catList):
             noms = x[1]
 
         #determine winners and presenters
-        (winner, feelings) = getWinner(x[0]["Tweets"], noms, notes)
+        winner = getWinner(x[0]["Tweets"], noms, notes)
         presenters = getPresenter(x[0]["Tweets"])
 
         #Prepare fungoals
@@ -197,7 +194,7 @@ def detectData(listDictionary, categories, nominees, catList):
         with open("results.json", "w") as file:
             json.dump(dictionary, file)
         """
-    
+
     answers["data"]["unstructured"]["winners"] = winnersList
     answers["data"]["unstructured"]["awards"] = categoryList
     answers["data"]["unstructured"]["presenters"] = presentersList
@@ -209,7 +206,7 @@ def detectData(listDictionary, categories, nominees, catList):
     with open("answers.json", "w") as file:
             json.dump(answers, file)
     """
-    return (answers, funGoals)
+    return dictionary
 
 def getMetaData(dictionary):
     dictionary["metadata"] = dict()
@@ -241,13 +238,14 @@ def getWinner(tweets, nominees, notes):
     print "Example of Winner Tweets"
     print winTweets[1]
     
+    feelings = []
     feelings = filterEmojis(winTweets)
     print feelings["Positivity score"]
     
     #get word frequencies
     countDict = getCount(winTweets)
     winner = predictWinner(countDict, nominees, notes)
-    return (winner, feelings)
+    return winner
 
 def getPresenter(tweets):
     """
@@ -260,6 +258,7 @@ def getPresenter(tweets):
     presenters = predictPresenters(countDict)
     return presenters
 
+def getHosts()
 
 def getCategory(listOfCat):
     """
@@ -291,7 +290,7 @@ def splitTweets (category, tweets, catName):
         print "Keywords"
         print keywords
         
-        relTweets = filtertweets(tweets, keywords, badwords)
+        relTweets = softfiltertweets(tweets, keywords, badwords, 0.5)
 
         #print keywords
         
@@ -372,10 +371,11 @@ def getCount(tweets):
 
     return diction
 
+"""
 def sortCountDict(dictionary):
-    """
+    
     Create a list of lists with sorted word, count pairs
-    """
+
     sortedLists = [];
     
     for  word in sorted(diction, key = diction.get, reverse = True):
@@ -383,6 +383,7 @@ def sortCountDict(dictionary):
         sortedLists.append(line)
 
     return sortedLists
+"""
 
 def predictWinner(namedict, noms, notes):
     """
