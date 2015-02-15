@@ -6,14 +6,17 @@ import nltk
 import re
 import Category
 from JakeFunctions import filtertweets
-import emojiProcessing
+from emojiProcessing import parseRange
+from emojiProcessing import parseHex
+from emojiProcessing import prepareEmojiLists
+from emojiProcessing import filterEmojis
 import sys
 
 predictKeywords = ["think", "calling", "want", "predict", "predictions", "if", "hoping",
                    "hope", "which", "Which", "Calling", "Think", "who", "Who", "Want",
                    "Prediction", "Predictions", "prediction", "Predictor", "predictor"
                    "If", "Hope", "please", "Please", "should've", "Should've",
-                   "should", "Should", "torn", "prays"]
+                   "should", "Should", "torn", "prays", "predicting", "Predicting"]
 
 winnerKeywords = ["wins", "won", "speech",
                   "Wins", "Won",
@@ -27,8 +30,7 @@ exclude = ["Golden", "Globes", "RT", "Best", "GoldenGlobes", "The", "For",
            "Actor", "Actress", "Wins", "Congrats", "A", "Movie",
            "Winner", "Supporting", "Globe", "Or", "At", "I", "G"]
 
-globalBadWords = ["Supporting", "Drama", "Musical", "Comedy", "Actress", "Actor"
-                  "Movie", "TV", "Mini-series"]
+globalBadWords = ["Supporting", "Actress", "Actor"]
                   
 
 def main():
@@ -43,8 +45,8 @@ def getData(filename):
     """input: filename of the json object with tweets
     output: a list of list of tokenized tweets
     """
-    with open(filename) as file:
-        tweets = [json.loads(line)["text"] for line in file]
+    with open(filename) as fl:
+        tweets = [json.loads(line)["text"] for line in fl]
     
     parsedTweets = [nltk.wordpunct_tokenize(tweet) for tweet in tweets]
 
@@ -53,9 +55,9 @@ def getData(filename):
     else:
         (categories, nominees, catList) = Category.createCategories()
     
-    return parsedTweets
+    return (parsedTweets, categories, nominees, catList)
 
-def noPredictions(parsedTweets):
+def noPredictions(parsedTweets, categories, nominees, catList):
     """
     Takes the entire list of parsed tweets and removes any tweets which contain
     prediction keywords.
@@ -68,17 +70,17 @@ def noPredictions(parsedTweets):
             
     return noPredTweets
 
-def Testing():
-    parsedTweets = getData()
-    cleanTweets = noPredictions(parsedTweets)
-    return cleanTweets
+def Testing(filename):
+    (parsedTweets, categories, nominees, catList) = getData(filename)
+    cleanTweets = noPredictions(parsedTweets, categories, nominees, catList)
+    return (cleanTweets, categories, nominees, catList)
 
-def Testing2(tweets):
-    dictionary = splitIntoCategories(tweets)
-    detectData(dictionary)
+def Testing2(tweets, categories, nominees, catList):
+    dictionary = splitIntoCategories(tweets, categories)
+    detectData(dictionary, categories, nominees, catList)
     return
   
-def splitIntoCategories(tweets):
+def splitIntoCategories(tweets, categories):
     """
     Group up the parsed tweets into the award categories arrays.
     categories: A list of Category class
@@ -94,7 +96,7 @@ def splitIntoCategories(tweets):
     return listDictionary
 
 
-def detectData(listDictionary):
+def detectData(listDictionary, categories, nominees, catList):
     """
     Takes in a dictionary of categories and corresponding tweets.
     Processes tweets further to extract desired information.
@@ -142,13 +144,18 @@ def detectData(listDictionary):
         nomineesList = nomineesList + noms
 
         #Save all answers for text interface
+        nomsOnly = []
+        for nom in noms:
+            if nom is not winner:
+                nomsOnly = nomsOnly + [nom]
+                
         dictionary[category] = dict()
         dictionary[category]["Winner"] = winner
         dictionary[category]["Presenters"] = presenters
         dictionary[category]["Nominees"] = noms
 
         answers["data"]["structured"][category] = dict()
-        answers["data"]["structured"][category]["Nominees"] = noms
+        answers["data"]["structured"][category]["Nominees"] = nomsOnly
         answers["data"]["structured"][category]["Winner"] = winner
         answers["data"]["structured"][category]["Presenters"] = presenters
         
@@ -165,7 +172,7 @@ def detectData(listDictionary):
     answers["data"]["unstructured"]["nominees"] = nomineesList
 
 
-    print answers
+    #print answers
     """
     with open("answers.json", "w") as file:
             json.dump(answers, file)
@@ -198,6 +205,9 @@ def getWinner(tweets, nominees, notes):
     """
     countDict = []
     winTweets = winnerTweets(tweets)
+
+    print "Example of Winner Tweets"
+    print winTweets[1]
     
     feelings = []
     feelings = filterEmojis(winTweets)
@@ -245,6 +255,11 @@ def splitTweets (category, tweets, catName):
             if word not in keywords:
                 badwords = badwords + [word]
         
+        print "Badwords"
+        print badwords
+        print "Keywords"
+        print keywords
+        
         relTweets = filtertweets(tweets, keywords, badwords)
 
         #print keywords
@@ -256,7 +271,7 @@ def splitTweets (category, tweets, catName):
         badwords = []
 
         relTweets = filtertweets(tweets, keywords, badwords)
-
+        
         for cat in category.subcats:
             listTweets = listTweets + splitTweets(cat, relTweets, catName + [cat.name])
             
