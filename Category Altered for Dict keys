@@ -1,5 +1,9 @@
 import json
 
+
+catNameDict = dict()
+
+
 class Category:
 	def __init__(self, name, subcats=[]):
 		self.name = name
@@ -62,20 +66,18 @@ def nameToListofStrings(category):
 	return temp
 
 
-def createCategories(categoryFN="categories_nominees_winners.json", dict=None):
-	if dict:
-		awards = dict["Awards"]
-	else:
-		with open(categoryFN) as infile:
-			awards = json.load(infile)["Awards"];
+def createCategories(categoryFN="categories_nominees_winners.json"):
+	with open(categoryFN) as infile:
+		awards = json.load(infile)["Awards"];
 
 	hierachies = [];
 	listOfNomineesLists = [];
-	listOfCats = [];
+	fullCatNames = [];
 	for award in awards:
 		category = award["Category"];
+		catNameDict[str(nameToListofStrings(category))] = category
+		#fullCatNames = fullCatNames + [category]
 		listOfNomineesLists = listOfNomineesLists + [award["Nominees"]]
-		listOfCats = listOfCats + [category];
 		listOfStrings = nameToListofStrings(category);
 		hierachies.append(listOfStrings);
 
@@ -84,7 +86,7 @@ def createCategories(categoryFN="categories_nominees_winners.json", dict=None):
 	hierachies = [x[0] for x in nominees_hierachies_tuple]
 	listOfNomineesLists = [y[1] for y in nominees_hierachies_tuple]
 	categories = findCats(hierachies, 0)
-	return (categories, listOfNomineesLists, listOfCats)
+	return (categories, listOfNomineesLists, catNameDict)
 
 
 

@@ -11,6 +11,7 @@ from emojiProcessing import parseHex
 from emojiProcessing import prepareEmojiLists
 from emojiProcessing import filterEmojis
 import sys
+from Scraping import scrapeResultsforYear
 
 predictKeywords = ["think", "calling", "want", "predict", "predictions", "if", "hoping",
                    "hope", "which", "Which", "Calling", "Think", "who", "Who", "Want",
@@ -37,10 +38,12 @@ def main():
     if len(sys.argv) > 2:
         filename = sys.argv[1]
 
-    (tweets, cats, noms, catList) = Testing(filename)
-    resultsDict = Testing2(tweets, cats, noms, catList)
-    
-    return resultsDict
+    (parsedTweets, categories, nominees, catList) = loadTweetsCategoriesNominees(filename)
+    answers = searchCorpus(parsedTweets, categories, nominees, catList)
+
+    with open("answers.json", "w+") as file:
+            json.dump(answers, file)
+
 
 def getData(filename):
     """input: filename of the json object with tweets
@@ -51,10 +54,19 @@ def getData(filename):
     
     parsedTweets = [nltk.wordpunct_tokenize(tweet) for tweet in tweets]
 
+    fn = "categories_nominees_winners";
     if ("15" in filename):
-        (categories, nominees, catList) = Category.createCategories()
+        (categories, nominees, catList) = Category.createCategories(fn + ".json")
+    elif ("13" in filename):
+        (categories, nominees, catList) = Category.createCategories(fn + "_2013.json")
     else:
-        (categories, nominees, catList) = Category.createCategories()
+        yr = re.search('\d\d\d\d', filename).group(0);
+        if yr:
+            scrapedResults = scrapeResultsforYear(yr, toFile=False)
+            (categories, nominees, catList) = Category.createCategories(dict=scrapedResults)
+        else: # Just do with 2015 results
+            (categories, nominees, catList) = Category.createCategories(fn + ".json")
+        
     
     return (parsedTweets, categories, nominees, catList)
 
@@ -71,12 +83,12 @@ def noPredictions(parsedTweets, categories, nominees, catList):
             
     return noPredTweets
 
-def Testing(filename):
+def loadTweetsCategoriesNominees(filename):
     (parsedTweets, categories, nominees, catList) = getData(filename)
     cleanTweets = noPredictions(parsedTweets, categories, nominees, catList)
     return (cleanTweets, categories, nominees, catList)
 
-def Testing2(tweets, categories, nominees, catList):
+def searchCorpus(tweets, categories, nominees, catList):
     dictionary = splitIntoCategories(tweets, categories)
     resultsDict = detectData(dictionary, categories, nominees, catList)
     return resultsDict
