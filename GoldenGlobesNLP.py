@@ -166,6 +166,7 @@ def detectData(listDictionary, categories, nominees, catList):
 
         #Prepare fungoals
         funGoals[category] = {};
+        funGoals[category]["Winner"] = winner
         funGoals[category]["Sentiment"] = feelings;
 
         #Save answer for json

@@ -1,4 +1,6 @@
 {"Best Screenplay - Motion Picture": {
+	"Winner" 	: [name of winner]
 	"Sentiment" : {"Positivity score" : [number],
+					"Dominant emotion" : {"Name" : [emotion name], "Emojis" : [list of emojis]}
 					"Negative" : [list of tweets],
 					"Positive" : [list of tweets]}}};

@@ -13,27 +13,41 @@ def parseHex(input):
 
 def prepareEmojiLists():
 	""" Positive: """
-	Approval = [u"\u2764"]
-	Joyful = parseRange((0x1F602, 0x1F60A))
-	Love = parseRange((0x1F618, 0x1F619)) + [u"\u2764"]
-	Silly = parseRange((0x1F61C, 0x1F61D))
-	positive = Silly + Approval + Joyful + Love
+	positive = {}
+	positive["Approval"] = [u"\u2764"]
+	positive["Joyful"] = parseRange((0x1F602, 0x1F60A))
+	positive["Love"] = parseRange((0x1F618, 0x1F619)) + [u"\u2764"]
+	positive["Silly"] = parseRange((0x1F61C, 0x1F61D))
 
 
 	""" Negative: """
-	Angry = parseRange((0x1F61E, 0x1F624))
-	Crying = parseRange((0x1F625, 0x1F630)) + [u"\U0001f62d"]
-	Shocked = parseRange((0x1F631, 0x1F635))
-	negative = Angry + Crying + Shocked
+	negative = {}
+	negative["Angry"] = parseRange((0x1F61E, 0x1F624))
+	negative["Crying"] = parseRange((0x1F625, 0x1F630)) + [u"\U0001f62d"]
+	negative["Shocked"] = parseRange((0x1F631, 0x1F635))
 
-	return (positive, negative)
+	emojiCategories = {"Positive" : positive, "Negative" : negative}
+	return emojiCategories
 
+def funnyEmojis():
+	return parseRange((0x1F605, 0x1F606)) + parseRange((0x1F61D, 0x1F61D))
+
+def filterRecursive(tweets, superCategory):
+	if type(superCategory) == type([]):
+		
+
+	
 def filterEmojis(tweets):
-	(positive, negative) = prepareEmojiLists();
+	emojiCategories = prepareEmojiLists()
+	positive = [emoji for key in emojiCategories["Positive"] for emoji in emojiCategories["Positive"][key]]
+	negative = [emoji for key in emojiCategories["Negative"] for emoji in emojiCategories["Negative"][key]]
+
 	positiveTweets = filtertweets(tweets,positive,[])
 	negativeTweets = filtertweets(tweets,negative,[])
 	return {"Positivity score" 	: (len(positiveTweets) + 1.0) / (len(negativeTweets) + 1.0),
+			"Dominant emotion" :
 			"Negative"	: negativeTweets,
 			"Positive"	: positiveTweets}
+
 
 
