@@ -34,22 +34,25 @@ exclude = ["Golden", "Globes", "RT", "Best", "GoldenGlobes", "The", "For",
 
 globalBadWords = ["Supporting", "Actors", "Actress"]
 
-hostKeywords = ["hosts", "Hosts", "hosting", "Hosting"]
-                  
+hostKeywords = ["hosts", "Hosts", "hosting", "Hosting"]       
 
 def main():
-    if len(sys.argv) > 2:
+    try:
         filename = sys.argv[1]
 
-    (parsedTweets, categories, nominees, catList) = loadTweetsCategoriesNominees(filename)
-    (answers, interfaceDict, funGoals) = searchCorpus(parsedTweets, categories, nominees, catList)
+        print "Loading tweets"
+        (parsedTweets, categories, nominees, catList) = loadTweetsCategoriesNominees(filename)
+        print "Doing analysis"
+        (answers, interfaceDict, funGoals) = searchCorpus(parsedTweets, categories, nominees, catList)
 
-    with open("answers.json", "w+") as file:
-        json.dump(answers, file)
-    with open("interfaceDict.json", "w+") as file:
-        json.dump(interfaceDict, file)
-    with open("funGoals.json", "w+") as file:
-        json.dump(funGoals, file)
+        with open("answers.json", "w+") as file:
+            json.dump(answers, file)
+        with open("interfaceDict.json", "w+") as file:
+            json.dump(interfaceDict, file)
+        with open("funGoals.json", "w+") as file:
+            json.dump(funGoals, file)
+    except IndexError:
+        print "Give a json file containing tweets as the first argument"
 
 
 def loadParsedTweets(filename):
@@ -105,7 +108,7 @@ def searchCorpus(tweets, categories, nominees, catList):
     dictionary = splitIntoCategories(tweets, categories)
     hosts = getHosts(tweets)
     (resultsDict, interfaceDict, funGoals) = detectData(dictionary, categories, nominees, catList, hosts)
-    return (resultsDict, interfaceDict)
+    return (resultsDict, interfaceDict, funGoals)
   
 def splitIntoCategories(tweets, categories):
     """
@@ -130,8 +133,8 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
     
     Returns a dictionary with Award, Winners, Presenters, and Nominees
     """
-    dictionary = dict()
-    answers = dict()
+    dictionary = {}
+    answers = {}
     funGoals = {}
     winnersList = []
     categoryList = []
@@ -149,10 +152,7 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
         noms = []
         notes = []
 
-        #print "The category is "
-        #print x[0]["Cats"]
-
-        category = getCategory(x[0]["Cats"])
+        category = getCategory(x[0]["Cats"], catList)
         
         #get nominees for category
         if (type(x[1][0]) is dict):
@@ -196,23 +196,11 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
         answers["data"]["structured"][category]["Winner"] = winner
         answers["data"]["structured"][category]["Presenters"] = presenters
         
-        #print winner
-        #print dictionary
-        """
-        with open("results.json", "w") as file:
-            json.dump(dictionary, file)
-        """
 
     answers["data"]["unstructured"]["winners"] = winnersList
     answers["data"]["unstructured"]["awards"] = categoryList
     answers["data"]["unstructured"]["presenters"] = presentersList
     answers["data"]["unstructured"]["nominees"] = nomineesList
-
-
-    #print answers
-    
-    with open("answersfor2013.json", "w+") as file:
-            json.dump(answers, file)
     
     return (answers, dictionary, funGoals)
 
@@ -283,7 +271,7 @@ def getHosts(tweets):
 
     return hosts
 
-def getCategory(listOfCat):
+def getCategory(listOfCat, catList):
     """
     Returns the award category string
     """
@@ -345,47 +333,7 @@ def buildCategoryKeywords(categoryname):
         noSpaceWord = word.replace(" ", "")
         catKeywords2.append(noSpaceWord)
         
-    return catKeywords2
-
-"""
-def winnerTweets(tweets):
-    
-    Selects the tweets that are likely to pertain to winners according to
-    winner kewords list.
-    Returns an array that has matches to winner keywords
-    
-    winTweets = []
-    
-    for tweet in tweets:
-        if (any ([x in winnerKeywords for x in tweet])):
-            winTweets.append(tweet)
-
-    return winTweets
-
-def presenterTweets(tweets):
-    
-    Should return tweets dealing with presenters
-    
-    presenterTweets = []
-
-    for tweet in tweets:
-        if (any ([x in presenterKeywords for x in tweet])):
-            presenterTweets.append(tweet)
-            
-    return presenterTweets
-
-def hostsTweets(tweets):
-    
-    Should return tweets dealing with presenters
-    
-    hTweets = []
-
-    for tweet in tweets:
-        if (any ([x in hostKeywords for x in tweet])):
-            hTweets.append(tweet)
-            
-    return hTweets
-"""                
+    return catKeywords2               
 
 def getCount(tweets):
     """
@@ -406,19 +354,6 @@ def getCount(tweets):
 
     return diction
 
-"""
-def sortCountDict(dictionary):
-    
-    Create a list of lists with sorted word, count pairs
-
-    sortedLists = [];
-    
-    for  word in sorted(diction, key = diction.get, reverse = True):
-        line = (word, dictionary[word])
-        sortedLists.append(line)
-
-    return sortedLists
-"""
 
 def predictWinner(namedict, noms, notes):
     """
@@ -435,9 +370,6 @@ def predictWinner(namedict, noms, notes):
                 return name
 
 
-"""
-Also need a Readme file with
--Library citations
--Consulted repositories
--What was done to make the system adaptable
-"""
+
+if __name__ == "__main__":
+    main()   
