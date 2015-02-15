@@ -196,7 +196,6 @@ def detectData(listDictionary, categories, nominees, catList):
             json.dump(dictionary, file)
         """
     
-    funGoals[]
     answers["data"]["unstructured"]["winners"] = winnersList
     answers["data"]["unstructured"]["awards"] = categoryList
     answers["data"]["unstructured"]["presenters"] = presentersList
