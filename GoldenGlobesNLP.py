@@ -38,9 +38,13 @@ def main():
     if len(sys.argv) > 2:
         filename = sys.argv[1]
 
-    getData(filename)
+    (parsedTweets, categories, nominees, catList) = loadTweetsCategoriesNominees(filename)
+    answers = searchCorpus(parsedTweets, categories, nominees, catList)
 
-    return
+    with open("answers.json", "w+") as file:
+            json.dump(answers, file)
+
+    
 
 def getData(filename):
     """input: filename of the json object with tweets
@@ -80,12 +84,12 @@ def noPredictions(parsedTweets, categories, nominees, catList):
             
     return noPredTweets
 
-def Testing(filename):
+def loadTweetsCategoriesNominees(filename):
     (parsedTweets, categories, nominees, catList) = getData(filename)
     cleanTweets = noPredictions(parsedTweets, categories, nominees, catList)
     return (cleanTweets, categories, nominees, catList)
 
-def Testing2(tweets, categories, nominees, catList):
+def searchCorpus(tweets, categories, nominees, catList):
     dictionary = splitIntoCategories(tweets, categories)
     detectData(dictionary, categories, nominees, catList)
     return
