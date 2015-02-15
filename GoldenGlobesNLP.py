@@ -6,10 +6,10 @@ import nltk
 import re
 import Category
 import JakeFunctions as JF
-#from emojiProcessing import parseRange
-#from emojiProcessing import parseHex
-#from emojiProcessing import prepareEmojiLists
-#from emojiProcessing import filterEmojis
+from emojiProcessing import parseRange
+from emojiProcessing import parseHex
+from emojiProcessing import prepareEmojiLists
+from emojiProcessing import filterEmojis
 import sys
 from Scraping import scrapeResultsforYear
 
