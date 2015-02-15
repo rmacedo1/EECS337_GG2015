@@ -62,9 +62,12 @@ def nameToListofStrings(category):
 	return temp
 
 
-def createCategories(categoryFN="categories_nominees_winners.json"):
-	with open(categoryFN) as infile:
-		awards = json.load(infile)["Awards"];
+def createCategories(categoryFN="categories_nominees_winners.json", dict=None):
+	if dict:
+		awards = dict["Awards"]
+	else:
+		with open(categoryFN) as infile:
+			awards = json.load(infile)["Awards"];
 
 	hierachies = [];
 	listOfNomineesLists = [];

@@ -11,6 +11,7 @@ from emojiProcessing import parseHex
 from emojiProcessing import prepareEmojiLists
 from emojiProcessing import filterEmojis
 import sys
+from Scraping import scrapeResultsforYear
 
 predictKeywords = ["think", "calling", "want", "predict", "predictions", "if", "hoping",
                    "hope", "which", "Which", "Calling", "Think", "who", "Who", "Want",
@@ -50,10 +51,19 @@ def getData(filename):
     
     parsedTweets = [nltk.wordpunct_tokenize(tweet) for tweet in tweets]
 
+    fn = "categories_nominees_winners";
     if ("15" in filename):
-        (categories, nominees, catList) = Category.createCategories()
+        (categories, nominees, catList) = Category.createCategories(fn + ".json")
+    elif ("13" in filename):
+        (categories, nominees, catList) = Category.createCategories(fn + "_2013.json")
     else:
-        (categories, nominees, catList) = Category.createCategories()
+        yr = re.search('\d\d\d\d', filename).group(0);
+        if yr:
+            scrapedResults = scrapeResultsforYear(yr, toFile=False)
+            (categories, nominees, catList) = Category.createCategories(dict=scrapedResults)
+        else: # Just do with 2015 results
+            (categories, nominees, catList) = Category.createCategories(fn + ".json")
+        
     
     return (parsedTweets, categories, nominees, catList)
 
