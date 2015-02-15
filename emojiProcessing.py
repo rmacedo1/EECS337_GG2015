@@ -32,7 +32,7 @@ def filterEmojis(tweets):
 	(positive, negative) = prepareEmojiLists();
 	positiveTweets = filtertweets(tweets,positive,[])
 	negativeTweets = filtertweets(tweets,negative,[])
-	return {"Positivity score" 	: (len(positiveTweets) + 1) / (len(negativeTweets) + 1),
+	return {"Positivity score" 	: (len(positiveTweets) + 1.0) / (len(negativeTweets) + 1.0),
 			"Negative"	: negativeTweets,
 			"Positive"	: positiveTweets}
 
