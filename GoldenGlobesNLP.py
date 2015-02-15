@@ -23,7 +23,8 @@ winnerKeywords = ["wins", "won", "speech",
                   "Wins", "Won",
                   "congrats", "Congrats", "winner", "Winner"]
 
-presentersKeywords = ["presenting", "giving", "presenters", "Presenters", "Presenting"]
+presentersKeywords = ["presenting", "giving", "presenters", "Presenters",
+                      "Presenting"]
 notAllowed = ["#", ".", "@", ":", "http", "://", "/", "co"]
 
 exclude = ["Golden", "Globes", "RT", "Best", "GoldenGlobes", "The", "For",
@@ -33,7 +34,7 @@ exclude = ["Golden", "Globes", "RT", "Best", "GoldenGlobes", "The", "For",
 
 globalBadWords = ["Supporting", "Actors", "Actress"]
 
-hostKeywords
+hostKeywords = ["hosts", "Hosts", "hosting", "Hosting"]
                   
 
 def main():
@@ -162,12 +163,7 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
 
         #determine winners and presenters
         winner = getWinner(x[0]["Tweets"], noms, notes)
-        presenters = getPresenter(x[0]["Tweets"], noms)
-
-        #Prepare fungoals
-        funGoals[category] = {};
-        funGoals[category]["Winner"] = winner
-        funGoals[category]["Sentiment"] = feelings;
+        presenters = getPresenters(x[0]["Tweets"], noms)
 
         #Save answer for json
         winnersList = winnersList + [winner]
@@ -236,7 +232,7 @@ def getWinner(tweets, nominees, notes):
     and category related tweets
     """
     countDict = []
-    winTweets = winnerTweets(tweets)
+    winTweets = hardfiltertweets(tweets, winnerKeywords, [])
 
     print "Example of Winner Tweets"
     print winTweets[1]
@@ -250,22 +246,28 @@ def getWinner(tweets, nominees, notes):
     winner = predictWinner(countDict, nominees, notes)
     return winner
 
-def getPresenter(tweets):
+def getPresenters(tweets, noms):
     """
-    Returns the predicted winner according to given tweets
+    Returns the predicted presenters according to given
     category relevant tweets
     """
-    countDict = []
-    presTweets = presenterTweets(tweets)
-    countDict = getCount(presTweets)    
-    presenters = predictPresenters(countDict)
+    badwords = ["Golden Globes"] + noms
+    presTweets = hardfiltertweets(tweets, presenterKeywords, [])
+    wordDict = buildworddict(presTweets, exclude)
+    nameList = buildnamedict(presTweets, badwords)
+
+    presenters = predictNames(wordDict, nameList, 2)
     return presenters
 
+
 def getHosts(tweets):
+    """
+    Takes the corpus of tweets and returns a list of the predicted hosts
+    """
+    hostTweets = hardfiltertweets(tweets, hostKeywords, [] )
     badwords = ["Golden Globes"]
-    
-    wordDict = buildworddict(tweets, exclude)
-    nameList = buildnamedict(tweets, badwords)
+    wordDict = buildworddict(hostTweets, exclude)
+    nameList = buildnamedict(hostTweets, badwords)
 
     hosts = predictNames(wordDict, nameList, 2)
 
@@ -335,13 +337,13 @@ def buildCategoryKeywords(categoryname):
         
     return catKeywords2
 
-
+"""
 def winnerTweets(tweets):
-    """"
+    
     Selects the tweets that are likely to pertain to winners according to
     winner kewords list.
     Returns an array that has matches to winner keywords
-    """
+    
     winTweets = []
     
     for tweet in tweets:
@@ -351,17 +353,29 @@ def winnerTweets(tweets):
     return winTweets
 
 def presenterTweets(tweets):
-    """
+    
     Should return tweets dealing with presenters
-    """
+    
     presenterTweets = []
+
+    for tweet in tweets:
+        if (any ([x in presenterKeywords for x in tweet])):
+            presenterTweets.append(tweet)
+            
     return presenterTweets
 
-def predictPresenters(dictionary):
-    """
-    Return a list of predicted presenters
-    """
-    return []                     
+def hostsTweets(tweets):
+    
+    Should return tweets dealing with presenters
+    
+    hTweets = []
+
+    for tweet in tweets:
+        if (any ([x in hostKeywords for x in tweet])):
+            hTweets.append(tweet)
+            
+    return hTweets
+"""                
 
 def getCount(tweets):
     """
