@@ -30,16 +30,17 @@ exclude = ["Golden", "Globes", "RT", "Best", "GoldenGlobes", "The", "For",
            "Actor", "Actress", "Wins", "Congrats", "A", "Movie",
            "Winner", "Supporting", "Globe", "Or", "At", "I", "G"]
 
-globalBadWords = ["Supporting", "Actress", "Actor"]
+globalBadWords = ["Supporting"]
                   
 
 def main():
     if len(sys.argv) > 2:
         filename = sys.argv[1]
 
-    getData(filename)
-
-    return
+    (tweets, cats, noms, catList) = Testing(filename)
+    resultsDict = Testing2(tweets, cats, noms, catList)
+    
+    return resultsDict
 
 def getData(filename):
     """input: filename of the json object with tweets
@@ -77,8 +78,8 @@ def Testing(filename):
 
 def Testing2(tweets, categories, nominees, catList):
     dictionary = splitIntoCategories(tweets, categories)
-    detectData(dictionary, categories, nominees, catList)
-    return
+    resultsDict = detectData(dictionary, categories, nominees, catList)
+    return resultsDict
   
 def splitIntoCategories(tweets, categories):
     """
@@ -123,17 +124,21 @@ def detectData(listDictionary, categories, nominees, catList):
 
         print "The category is "
         print x[0]["Cats"]
+
+        category = getCategory(x[0]["Cats"])
         
         #get nominees for category
         if (type(x[1][0]) is dict):
             for person in x[1]:
-                noms +=  [person["Person"]]
-                notes += [person["Notes"]]
+                if category in ["Best Screenplay - Motion Picture", "Best Original Score"]:
+                    noms += [person["Notes"]]
+                else:
+                    noms +=  [person["Person"]]
+                    notes += [person["Notes"]]
         else:
             noms = x[1]
 
-        #determine category
-        category = getCategory(x[0]["Cats"])
+        #determine winners and presenters
         winner = getWinner(x[0]["Tweets"], noms, notes)
         presenters = getPresenter(x[0]["Tweets"])
 
