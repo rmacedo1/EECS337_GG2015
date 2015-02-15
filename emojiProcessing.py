@@ -1,4 +1,4 @@
-from JakeFunctions import filtertweets
+from JakeFunctions import hardfiltertweets
 
 def parseRange(input):
 	return [parseHex(format(x, '08x')) for x in range(input[0], input[1] + 1)]		
@@ -32,22 +32,44 @@ def prepareEmojiLists():
 def funnyEmojis():
 	return parseRange((0x1F605, 0x1F606)) + parseRange((0x1F61D, 0x1F61D))
 
-def filterRecursive(tweets, superCategory):
+def filterRecursive(tweets, superCategory, name):
 	if type(superCategory) == type([]):
-		
+		filtered = hardfiltertweets(tweets,superCategory,[])
+		return (filtered, {"Name" : name, "Emojis" : superCategory})
+	elif type(superCategory) == type({}):
+		types = {}
+		domEmotion = {};
+		max = 0;
+		for subcat in superCategory:
+			emojiList = getEmojis(superCategory[subcat])
+			filteredTweets = hardfiltertweets(tweets,emojiList,[])
+			(filtered, domDict) = filterRecursive(filteredTweets, superCategory[subcat], subcat)
+			types[subcat] = filteredTweets
+			l = len(domDict["Emojis"])
+			if l > max:
+				max = l
+				domEmotion = domDict;
+		return (types, domEmotion)
+
+def getEmojis(superCategory):
+	if type(superCategory) == type([]):
+		return superCategory
+	else:
+		ans = []
+		for subcat in superCategory:
+			ans = ans + getEmojis(superCategory[subcat])
+		return ans
 
 	
 def filterEmojis(tweets):
 	emojiCategories = prepareEmojiLists()
-	positive = [emoji for key in emojiCategories["Positive"] for emoji in emojiCategories["Positive"][key]]
-	negative = [emoji for key in emojiCategories["Negative"] for emoji in emojiCategories["Negative"][key]]
 
-	positiveTweets = filtertweets(tweets,positive,[])
-	negativeTweets = filtertweets(tweets,negative,[])
-	return {"Positivity score" 	: (len(positiveTweets) + 1.0) / (len(negativeTweets) + 1.0),
-			"Dominant emotion" :
-			"Negative"	: negativeTweets,
-			"Positive"	: positiveTweets}
+	(types, domEmotion) = filterRecursive(tweets, emojiCategories, "")
+
+	return {"Positivity score" 	: (len(types["Positive"]) + 1.0) / (len(types["Negative"]) + 1.0),
+			"Dominant emotion" : domEmotion,
+			"Negative"	: types["Negative"],
+			"Positive"	: types["Positive"]}
 
 
 
