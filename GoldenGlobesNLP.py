@@ -49,7 +49,8 @@ def main():
 
 def loadParsedTweets(filename):
     with open(filename) as fl:
-        tweets = [json.loads(line)["text"] for line in fl]
+        jsonObj = json.load(fl);
+        tweets = [tweet["text"] for tweet in jsonObj]
     parsedTweets = [nltk.wordpunct_tokenize(tweet) for tweet in tweets]
     return parsedTweets
 
