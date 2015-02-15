@@ -42,10 +42,14 @@ def main():
         filename = sys.argv[1]
 
     (parsedTweets, categories, nominees, catList) = loadTweetsCategoriesNominees(filename)
-    (answers, interfaceDict) = searchCorpus(parsedTweets, categories, nominees, catList)
+    (answers, interfaceDict, funGoals) = searchCorpus(parsedTweets, categories, nominees, catList)
 
     with open("answers.json", "w+") as file:
-            json.dump(answers, file)
+        json.dump(answers, file)
+    with open("interfaceDict.json", "w+") as file:
+        json.dump(interfaceDict, file)
+    with open("funGoals.json", "w+") as file:
+        json.dump(funGoals, file)
 
 
 def loadParsedTweets(filename):
@@ -100,7 +104,7 @@ def loadTweetsCategoriesNominees(filename):
 def searchCorpus(tweets, categories, nominees, catList):
     dictionary = splitIntoCategories(tweets, categories)
     hosts = getHosts(tweets)
-    (resultsDict, interfaceDict) = detectData(dictionary, categories, nominees, catList, hosts)
+    (resultsDict, interfaceDict, funGoals) = detectData(dictionary, categories, nominees, catList, hosts)
     return (resultsDict, interfaceDict)
   
 def splitIntoCategories(tweets, categories):
@@ -128,6 +132,7 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
     """
     dictionary = dict()
     answers = dict()
+    funGoals = {}
     winnersList = []
     categoryList = []
     presentersList = []
@@ -139,7 +144,7 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
     answers["data"]["unstructured"]["hosts"] = hosts
     answers["data"]["structured"]= dict()
     
-        
+
     for x in zip(listDictionary, nominees):
         noms = []
         notes = []
@@ -161,8 +166,13 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
             noms = x[1]
 
         #determine winners and presenters
-        winner = getWinner(x[0]["Tweets"], noms, notes)
+        (winner, feelings) = getWinner(x[0]["Tweets"], noms, notes)
         presenters = getPresenters(x[0]["Tweets"], noms)
+
+        #Prepare fungoals
+        funGoals[category] = {};
+        funGoals[category]["Winner"] = winner
+        funGoals[category]["Sentiment"] = feelings;
 
         #Save answer for json
         winnersList = winnersList + [winner]
@@ -204,7 +214,7 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
     with open("answersfor2013.json", "w+") as file:
             json.dump(answers, file)
     
-    return (answers, dictionary)
+    return (answers, dictionary, funGoals)
 
 def getMetaData(dictionary):
     dictionary["metadata"] = dict()
@@ -243,7 +253,7 @@ def getWinner(tweets, nominees, notes):
     #get word frequencies
     countDict = getCount(winTweets)
     winner = predictWinner(countDict, nominees, notes)
-    return winner
+    return (winner, feelings)
 
 def getPresenters(tweets, noms):
     """
