@@ -1,0 +1,4 @@
+{"Best Screenplay - Motion Picture": {
+	"Sentiment" : {"Positivity score" : [number],
+					"Negative" : [list of tweets],
+					"Positive" : [list of tweets]}}};
