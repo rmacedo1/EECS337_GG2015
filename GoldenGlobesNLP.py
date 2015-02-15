@@ -202,7 +202,7 @@ def detectData(listDictionary, categories, nominees, catList):
     with open("answers.json", "w") as file:
             json.dump(answers, file)
     """
-    return (dictionary, funGoals)
+    return (answers, funGoals)
 
 def getMetaData(dictionary):
     dictionary["metadata"] = dict()
