@@ -297,7 +297,7 @@ def getCategory(listOfCat, catList):
             return category
     
     
-def splitTweets (category, tweets, catName):
+def splitTweets(category, tweets, catName):
     """
     Takes an object of type Category class, a list of tweets, and a list containing the category name
     Returns a list of dictionaries with tweets pertaining to that category
@@ -319,7 +319,7 @@ def splitTweets (category, tweets, catName):
     else:
         badwords = []
 
-        relTweets = JF.softfiltertweets(tweets, keywords, badwords, 1)
+        relTweets = JF.softfiltertweets(tweets, keywords, badwords, 0)
         
         for cat in category.subcats:
             listTweets = listTweets + splitTweets(cat, relTweets, catName + [cat.name])
