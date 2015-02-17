@@ -13,8 +13,9 @@ def getTrainingData(tweets):
 	for p in presenters:
 		presenters_split = presenters_split + p.split(" ") 
 
-	presenting = JF.hardfiltertweets(tweets, presenters_split, [])[0:200]
-	non_presenting = JF.hardfiltertweets(tweets, ["a", "they"], presenters_split)[0:200]
+	other_words = ["Wins", "Won", "congrats", "Congrats", "winner", "Winner"]
+	presenting = JF.hardfiltertweets(tweets, presenters_split, [])
+	non_presenting = JF.hardfiltertweets(tweets, other_words, presenters_split)
 
 	print len(presenting)
 	print len(non_presenting)
@@ -51,10 +52,10 @@ def make_e_f(words):
 
 
 # Label tweets as presenting and non-presenting
-def train(tweets):
+def train(tweets, getTrainingData):
 	processed_tweets = getTrainingData(tweets)
-	training_tweets = processed_tweets[:100]
-	test_tweets = processed_tweets[100:]
+	training_tweets = processed_tweets[:len(processed_tweets)/2]
+	test_tweets = processed_tweets[len(processed_tweets)/2:]
 	words = createWordList(training_tweets)
 
 	processor = make_e_f(words)
@@ -63,8 +64,6 @@ def train(tweets):
 	classifier = nltk.NaiveBayesClassifier.train(training_set)
 
 	test_set = [(processor(t), b) for (t, b) in training_tweets]
-	for t in test_set:
-		print classifier.classify(t[0])
 	print "Accuracy: " + str(nltk.classify.accuracy(classifier, test_set))
 
 	return (classifier, processor)
@@ -74,11 +73,13 @@ def classifyTweets(tweets):
 		obj = pickle.load(fp);
 		classifier = obj["classifier"]
 		processor = obj["processor"]
-		test_set = [processor(t) for t in tweets]
-		labeled_tweets = [(original, classifier.classify(processor(tweet))) for tweet, original in zip(test_set, tweets)]
-		return labeled_tweets
 	
+	return classifyTweets2(tweets, processor, classifier, True)
 
+def classifyTweets2(tweets, processor, classifier, cat):
+	test_set = [processor(t) for t in tweets]
+	labeled_tweets = [(original, classifier.classify(processor(tweet))) for tweet, original in zip(test_set, tweets)]
+	return [bundle[0] for bundle in labeled_tweets if bundle[1] == cat]
 
 def main():
 	fn = "gg2013.json"

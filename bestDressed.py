@@ -1,16 +1,35 @@
 import JakeFunctions as JF 
 import GoldenGlobesNLP as GG
+import naiveBayesProcessing as NB
+import random, json
+
+goodwords = ["beautiful","handsome","dressed", "dress"]
+badwords = ["a","the","and"]
+
+def getTrainingData(tweets):
+
+	hotness = JF.hardfiltertweets(tweets, goodwords,["ugly","heinous","hideous"])
+	hot_mess = JF.hardfiltertweets(tweets, badwords, goodwords + ["good"])
+
+	print len(hotness)
+	print len(hot_mess)
+
+	results = NB.labelTweets(hotness[:500], "Hotness") + NB.labelTweets(hot_mess[:500], "Hot mess")
+	random.shuffle(results)
+	return results
+
 
 def main():
 	fn = "gg2013.json"
 	tweets = GG.loadParsedTweets(fn)
-	dressed = ["dressed", "dress"]
-	goodwords = ["beautiful"]
-	badwords = ["hideous"]
-	dress_tweets = JF.hardfiltertweets(tweets, dressed, [])[0:10]
+	urls = JF.hardfiltertweets(tweets, ["://"], [])
+	print len(urls)
+	
+	(classifier, processor) = NB.train(tweets, getTrainingData)
+	
+	c = NB.classifyTweets2(urls[:200], processor, classifier, "Hotness")
+	print ["".join(tweet) for tweet in c]
 
-	print JF.hardfiltertweets(dress_tweets, goodwords, [])[0:10]
-	print JF.hardfiltertweets(dress_tweets, badwords, [])[0:10]
 
 
 

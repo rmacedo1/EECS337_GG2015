@@ -170,7 +170,6 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
     answers["data"]["unstructured"]["hosts"] = hosts
     answers["data"]["structured"]= dict()
     
-
     for x in zip(listDictionary, nominees):
 
         noms = []
@@ -289,14 +288,12 @@ def getPresenters(tweets, noms, category):
     Returns the predicted presenters according to given
     category relevant tweets
     """
-    badwords = ["Golden Globes"] + noms + category
+    badwords = ["Golden", "Globes"] + noms + category
     uniqueTweets = removeDuplicates(tweets)
     
-    #presTweets = JF.hardfiltertweets(uniqueTweets, presentersKeywords, [])
+    presTweets = JF.hardfiltertweets(uniqueTweets, presentersKeywords, [])
 
-    classified = nb.classifyTweets(tweets)
-    presTweets = [bundle[0] for bundle in classified if bundle[1]]
-    print presTweets
+    #presTweets = nb.classifyTweets(tweets)
 
     wordDict = JF.buildworddict(presTweets, exclude)
     nameList = JF.buildnamedict(presTweets, badwords)

@@ -19,7 +19,6 @@ def prepareEmojiLists():
 	positive["Love"] = parseRange((0x1F618, 0x1F619)) + [u"\u2764"]
 	positive["Silly"] = parseRange((0x1F61C, 0x1F61D))
 
-
 	""" Negative: """
 	negative = {}
 	negative["Angry"] = parseRange((0x1F61E, 0x1F624))
@@ -45,7 +44,7 @@ def filterRecursive(tweets, superCategory, name):
 			filteredTweets = hardfiltertweets(tweets,emojiList,[])
 			(filtered, domDict) = filterRecursive(filteredTweets, superCategory[subcat], subcat)
 			types[subcat] = filteredTweets
-			l = len(domDict["Emojis"])
+			l = len(filtered)
 			if l > max:
 				max = l
 				domEmotion = domDict;
