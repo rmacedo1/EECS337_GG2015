@@ -12,7 +12,6 @@ from emojiProcessing import prepareEmojiLists
 from emojiProcessing import filterEmojis
 import sys
 from Scraping import scrapeResultsforYear
-import time
 
 predictKeywords = ["think", "calling", "want", "predict", "predictions", "if", "hoping",
                    "hope", "which", "Which", "Calling", "Think", "who", "Who", "Want",
@@ -322,7 +321,7 @@ def getCategory(listOfCat, catList):
             return category
     
     
-def splitTweets (category, tweets, catName):
+def splitTweets(category, tweets, catName):
     """
     Takes an object of type Category class, a list of tweets, and a list containing the category name
     Returns a list of dictionaries with tweets pertaining to that category
@@ -343,9 +342,11 @@ def splitTweets (category, tweets, catName):
         return [ {"Cats": catName, "Tweets": retTweets} ]
     else:
         badwords = []
+        
         keywords = buildCategoryKeywords(category.name)
         
         relTweets = JF.hardfiltertweets(tweets, keywords, badwords)
+
         
         for cat in category.subcats:
             listTweets = listTweets + splitTweets(cat, relTweets, catName + [cat.name])
