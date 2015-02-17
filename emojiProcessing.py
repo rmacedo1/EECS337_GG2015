@@ -44,16 +44,13 @@ def filterRecursive(tweets, superCategory, name):
 			filteredTweets = hardfiltertweets(tweets,emojiList,[])
 			(filtered, domDict) = filterRecursive(filteredTweets, superCategory[subcat], subcat)
 			types[subcat] = filteredTweets
-			try:
-				l = len(domDict["Tweets"])
-				if l > max:
-					max = l
-					domEmotion = domDict;
-			except:
-				for x in domDict:
-					print x
-			
+			l = len(domDict["Tweets"])
+			if l >= max:
+				max = l
+				domEmotion = domDict
 		return (types, domEmotion)
+	else:
+		raise Exception("Improper superCategory in filterRecursive")
 
 def getEmojis(superCategory):
 	if type(superCategory) == type([]):

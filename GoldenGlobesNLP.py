@@ -246,7 +246,7 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
             answers["data"]["structured"][category]["Winner"] = noms[1]
             
         answers["data"]["structured"][category]["Presenters"] = presenters
-        
+    
     answers["data"]["unstructured"]["winners"] = winnersList
     answers["data"]["unstructured"]["awards"] = categoryList
     answers["data"]["unstructured"]["presenters"] = presentersList

@@ -52,8 +52,8 @@ def make_e_f(words):
 
 
 # Label tweets as presenting and non-presenting
-def train(tweets, getTrainingData):
-	processed_tweets = getTrainingData(tweets)
+def train(tweets, trainingData):
+	processed_tweets = trainingData(tweets)
 	training_tweets = processed_tweets[:len(processed_tweets)/2]
 	test_tweets = processed_tweets[len(processed_tweets)/2:]
 	words = createWordList(training_tweets)
@@ -64,6 +64,8 @@ def train(tweets, getTrainingData):
 	classifier = nltk.NaiveBayesClassifier.train(training_set)
 
 	test_set = [(processor(t), b) for (t, b) in training_tweets]
+	for t in test_set[:50]:
+		print classifier.classify(t[0])
 	print "Accuracy: " + str(nltk.classify.accuracy(classifier, test_set))
 
 	return (classifier, processor)
@@ -76,10 +78,10 @@ def classifyTweets(tweets):
 	
 	return classifyTweets2(tweets, processor, classifier, True)
 
-def classifyTweets2(tweets, processor, classifier, cat):
+def classifyTweets2(tweets, processor, classifier, category):
 	test_set = [processor(t) for t in tweets]
 	labeled_tweets = [(original, classifier.classify(processor(tweet))) for tweet, original in zip(test_set, tweets)]
-	return [bundle[0] for bundle in labeled_tweets if bundle[1] == cat]
+	return [bundle[0] for bundle in labeled_tweets if (bundle[1] == category)]
 
 def main():
 	fn = "gg2013.json"
