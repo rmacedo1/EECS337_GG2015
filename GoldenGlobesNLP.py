@@ -280,7 +280,7 @@ def getWinner(tweets, nominees, notes):
     """
     winTweets = JF.hardfiltertweets(tweets, winnerKeywords, [])
     
-    feelings = {}#filterEmojis(removeDuplicates(winTweets))
+    feelings = filterEmojis(removeDuplicates(winTweets))
 
     countDict = getCount(winTweets)
     winner = predictWinner(countDict, nominees, notes)
