@@ -64,18 +64,8 @@ def myFilter(tweets,goodwords,badwords,w):
 			results = results + [tweet]
 	return results
 
-
-def main():
-	fn = "gg2013.json"
-	tweets = loadParsedTweets(fn)
+def filterTests(tweets):
 	print len(tweets)
-	"""
-	print len(myFilter(tweets, ["just","testing"], [], 1))
-	print len(myFilter(tweets, ["just","testing"], [], 0))
-	print len(myFilter(tweets, ["just","testing"], [], .5))
-	print len(softfiltertweets(tweets, ["just","testing"], [], 1))
-	print len(softfiltertweets(tweets, ["just","testing"], [], 0))
-	print len(softfiltertweets(tweets, ["just","testing"], [], .5)) """
 
 	s = softfiltertweets(tweets, ["just","testing"], [], 1)
 	m = myFilter(tweets, ["just","testing"], [], 1)
@@ -88,6 +78,15 @@ def main():
 
 	print len(softfiltertweets([x.split(" ") for x in difference], ["just"], [], 0))
 	print len(softfiltertweets(m, ["just"], [], 0))
+
+def main():
+	fn = "gg2013.json"
+	tweets = loadParsedTweets(fn)
+
+	words = ["julia", "roberts", "Roberts", "Julia"];
+	print(hardfiltertweets(tweets, words, [])[1:20])
+
+	
 
 
 	

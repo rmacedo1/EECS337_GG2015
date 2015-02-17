@@ -12,6 +12,7 @@ from emojiProcessing import prepareEmojiLists
 from emojiProcessing import filterEmojis
 import sys
 from Scraping import scrapeResultsforYear
+import naiveBayesProcessing as nb
 
 predictKeywords = ["think", "calling", "want", "predict", "predictions", "if", "hoping",
                    "hope", "which", "Which", "Calling", "Think", "who", "Who", "Want",
@@ -176,7 +177,7 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
         notes = []
 
         category = getCategory(x[0]["Cats"], catList)
-        #print category
+        print category
         
         #get nominees for category
         if (type(x[1][0]) is dict):
@@ -291,7 +292,10 @@ def getPresenters(tweets, noms, category):
     badwords = ["Golden Globes"] + noms + category
     uniqueTweets = removeDuplicates(tweets)
     
-    presTweets = JF.hardfiltertweets(uniqueTweets, presentersKeywords, [])
+    #presTweets = JF.hardfiltertweets(uniqueTweets, presentersKeywords, [])
+
+    classified = nb.classifyTweets(tweets)
+    presTweets = [bundle[0] for bundle in classified if bundle[1]]
 
     wordDict = JF.buildworddict(presTweets, exclude)
     nameList = JF.buildnamedict(presTweets, badwords)
