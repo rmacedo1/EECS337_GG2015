@@ -12,7 +12,7 @@ def interface(dictionary):
 	lastAwardPress = 0
 
 	hosts = ["Tina Fey", "Amy Poehler"]
-	awards = ["Best Motion Picture, Drama", "Best Actress in a Motion Picture, Drama", "Best Actor in a Motion Picture, Drama", "Best Motion Picture, Musical or Comedy", "Best Actress In A Motion Picture, Musical or Comedy", "Best Actor in a Motion Picture, Musical or Comedy", "Best Animated Feature Film", "Best Foreign Language Film", "Best Supporting Actress in a Motion Picture", "Best Supporting Actor in a Motion Picture", "Best Director - Motion Picture", "Best Screenplay - Motion Picture", "Best Original Score - Motion Picture", "Best Original Song - Motion Picture", "Best TV Series, Drama", "Best Actress in a TV Series, Drama", "Best Actor in a TV Series, Drama", "Best TV Series, Musical or Comedy", "Best Actress in a TV Series, Musical or Comedy", "Best Actor in a TV Series, Musical or Comedy", "Best TV Movie or Mini-Series", "Best Actress in a Mini-Series or TV Movie", "Best Actor in a Mini-Series or TV Movie", "Best Supporting Actress in a Series, Mini-Series or TV Movie", "Best Supporting Actor in a Series, Mini-Series or TV Movie"]
+	awards = [x for x in dictionary.keys() if x not in ["hosts"]]
 	screen = curses.initscr()
 
 	curses.noecho()
