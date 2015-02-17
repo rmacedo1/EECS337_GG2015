@@ -64,7 +64,7 @@ def loadParsedTweets(filename):
         with open(filename) as fl:
             jsonObj = json.load(fl)
             tweets = [tweet["text"] for tweet in jsonObj]
-    except MemoryError:
+    except (MemoryError, ValueError):
         with open(filename) as fl:
             tweets = [json.loads(line)["text"] for line in fl]
             
