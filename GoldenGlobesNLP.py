@@ -170,6 +170,9 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
     answers["data"]["unstructured"]["hosts"] = hosts
     answers["data"]["structured"]= dict()
     
+    #Get hosts to interface dictionary
+    dictionary["hosts"] = hosts
+
     for x in zip(listDictionary, nominees):
 
         noms = []
