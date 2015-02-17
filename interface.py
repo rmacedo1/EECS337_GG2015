@@ -11,7 +11,6 @@ def interface(dictionary):
 	x = 0
 	lastAwardPress = 0
 
-	hosts = ["Tina Fey", "Amy Poehler"]
 	awards = [x for x in dictionary.keys() if x not in ["hosts"]]
 	screen = curses.initscr()
 
@@ -33,8 +32,8 @@ def interface(dictionary):
 		if x == ord('1') or x == "hosts":
 			screen.clear()
 			screen.border(0)
-			for y in range(0, len(hosts)):
-				screen.addstr(y + 1, 2, hosts[y])
+			for y in range(0, len(dictionary["hosts"])):
+				screen.addstr(y + 1, 2, dictionary["hosts"][y])
 			screen.addstr(22, 2, "2 - Awards, Page 1    3 - Awards, Page 2    4 - Exit")
 			screen.refresh()
 			x = 0
