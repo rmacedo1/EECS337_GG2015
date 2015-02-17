@@ -46,7 +46,8 @@ def extract_features(tweet, word_features):
 
 def make_e_f(words):
 	word_features = getWordFeatures(words)
-	return lambda tweet : extract_features(tweet, word_features)
+	extract_features_l = extract_features;
+	return lambda tweet : extract_features_l(tweet, word_features)
 
 
 # Label tweets as presenting and non-presenting
@@ -71,11 +72,12 @@ def train(tweets):
 def classifyTweets(tweets):
 	with open("classifier.json", "rb") as fp:
 		obj = pickle.load(fp);
-		classifer = obj["classifier"]
+		classifier = obj["classifier"]
 		processor = obj["processor"]
-	test_set = [processor(t) for t in training_tweets]
-	labeled_tweets = [(original, classifier.classify(processor(tweet))) for tweet, original in zip(test_set, tweets)]
-	return labeled_tweets
+		test_set = [processor(t) for t in tweets]
+		labeled_tweets = [(original, classifier.classify(processor(tweet))) for tweet, original in zip(test_set, tweets)]
+		return labeled_tweets
+	
 
 
 def main():

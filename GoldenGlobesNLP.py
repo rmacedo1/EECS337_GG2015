@@ -278,7 +278,7 @@ def getWinner(tweets, nominees, notes):
     """
     winTweets = JF.hardfiltertweets(tweets, winnerKeywords, [])
     
-    feelings = filterEmojis(removeDuplicates(winTweets))
+    feelings = {}#filterEmojis(removeDuplicates(winTweets))
 
     countDict = getCount(winTweets)
     winner = predictWinner(countDict, nominees, notes)
@@ -296,6 +296,7 @@ def getPresenters(tweets, noms, category):
 
     classified = nb.classifyTweets(tweets)
     presTweets = [bundle[0] for bundle in classified if bundle[1]]
+    print presTweets
 
     wordDict = JF.buildworddict(presTweets, exclude)
     nameList = JF.buildnamedict(presTweets, badwords)
