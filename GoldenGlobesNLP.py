@@ -342,12 +342,10 @@ def splitTweets(category, tweets, catName):
         return [ {"Cats": catName, "Tweets": retTweets} ]
     else:
         badwords = []
-        
         keywords = buildCategoryKeywords(category.name)
-        
+
         relTweets = JF.hardfiltertweets(tweets, keywords, badwords)
 
-        
         for cat in category.subcats:
             listTweets = listTweets + splitTweets(cat, relTweets, catName + [cat.name])
 

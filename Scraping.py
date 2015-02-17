@@ -22,7 +22,7 @@ def scrapeResultsforYear(year="2013", toFile=True):
 	if int(year) < 1943 or int(year) > 2014:
 		raise ImproperYearException("Year must be between 1943 and 2013")
 		
-	ggurl = "http://www.hfpa.org/browse/?param=/year/" + year
+	ggurl = "http://www.hfpa.org/browse/?param=/year/" + str(year)
 
 	bashCommand = "curl " + ggurl
 	process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
