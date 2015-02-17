@@ -232,6 +232,7 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
             
         dictionary[category]["Presenters"] = presenters
         dictionary[category]["Nominees"] = noms
+        dictionary[category]["Sentiment"] = feelings;
 
         answers["data"]["structured"][category] = dict()
         answers["data"]["structured"][category]["Nominees"] = nomsOnly
