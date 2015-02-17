@@ -12,6 +12,7 @@ from emojiProcessing import prepareEmojiLists
 from emojiProcessing import filterEmojis
 import sys
 from Scraping import scrapeResultsforYear
+import time
 
 predictKeywords = ["think", "calling", "want", "predict", "predictions", "if", "hoping",
                    "hope", "which", "Which", "Calling", "Think", "who", "Who", "Want",
@@ -30,7 +31,8 @@ notAllowed = ["#", ".", "@", ":", "http", "://", "/", "co"]
 exclude = ["Golden", "Globes", "RT", "Best", "GoldenGlobes", "The", "For",
            "Motion", "Picture", "Drama", "Comedy","Musical", "Series", "TV",
            "Actor", "Actress", "Wins", "Congrats", "A", "Movie",
-           "Winner", "Supporting", "Globe", "Or", "At", "I", "G"]
+           "Winner", "Supporting", "Globe", "Or", "At", "I", "G", "And", "We",
+           "Of", "Film"]
 
 globalBadWords = ["Supporting", "Actors", "Actress"]
 
@@ -58,11 +60,19 @@ def main():
 
 
 def loadParsedTweets(filename):
-    with open(filename) as fl:
-        jsonObj = json.load(fl);
-        tweets = [tweet["text"] for tweet in jsonObj]
+
+    try:
+        with open(filename) as fl:
+            jsonObj = json.load(fl)
+            tweets = [tweet["text"] for tweet in jsonObj]
+    except MemoryError:
+        with open(filename) as fl:
+            tweets = [json.loads(line)["text"] for line in fl]
+            
     parsedTweets = [nltk.wordpunct_tokenize(tweet) for tweet in tweets]
+
     return parsedTweets
+
 
 def getData(filename):
     """input: filename of the json object with tweets
@@ -167,24 +177,24 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
         notes = []
 
         category = getCategory(x[0]["Cats"], catList)
-        print category
+        #print category
         
         #get nominees for category
         if (type(x[1][0]) is dict):
             for person in x[1]:
                 if category in ["Best Screenplay - Motion Picture", "Best Original Score"]:
-                    noms += [person["Notes"]]
+                    noms += [person["Notes"].strip()]
                 else:
-                    noms +=  [person["Person"]]
+                    noms +=  [person["Person"].strip()]
                     notes += [person["Notes"]]
         else:
             noms = x[1]
 
         #determine winners and presenters
-        print "length of tweets is"
-        print len(x[0]["Tweets"])
+        #print "length of tweets is"
+        #print len(x[0]["Tweets"])
         (winner, feelings) = getWinner(x[0]["Tweets"], noms, notes)
-        presenters = getPresenters(x[0]["Tweets"], noms)
+        presenters = getPresenters(x[0]["Tweets"], noms, x[0]["Cats"])
 
         #import tests
         #print "Duplicates in fungoals: " + str(tests.checkForDuplicates(feelings["Positive"]))
@@ -195,30 +205,45 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
         funGoals[category]["Sentiment"] = feelings;
 
         #Save answer for json
-        winnersList = winnersList + [winner]
+        if winner is not None:
+            winnersList = winnersList + [winner]
+        else:
+            winnersList = winnersList + [noms[1]]
+            
         categoryList = categoryList + [category]
         presentersList = presentersList + presenters
-        nomineesList = nomineesList + noms
+        for nom in noms:
+            if type(nom) is not dict:
+                nomineesList = nomineesList + [nom]
+            else:
+                nomineesList = nomineesList + [nom["Person"]]
 
+        
         #Save all answers for text interface
         nomsOnly = []
         for nom in noms:
-            if nom is not winner:
+            if (nom is not winner) and (type(nom) is not dict) and nom is not None:
                 nomsOnly = nomsOnly + [nom]
-                
+
         dictionary[category] = dict()
-        dictionary[category]["Winner"] = winner
+        if winner is not None:
+            dictionary[category]["Winner"] = winner
+        else:
+            dictionary[category]["Winner"] = noms[1]    #randomly select winner
+            
         dictionary[category]["Presenters"] = presenters
         dictionary[category]["Nominees"] = noms
-        #Had to add sentiment now that we're using it for the interface
-        dictionary[category]["Sentiment"] = feelings;
 
         answers["data"]["structured"][category] = dict()
         answers["data"]["structured"][category]["Nominees"] = nomsOnly
-        answers["data"]["structured"][category]["Winner"] = winner
+        
+        if winner is not None:
+            answers["data"]["structured"][category]["Winner"] = winner
+        else:
+            answers["data"]["structured"][category]["Winner"] = noms[1]
+            
         answers["data"]["structured"][category]["Presenters"] = presenters
         
-
     answers["data"]["unstructured"]["winners"] = winnersList
     answers["data"]["unstructured"]["awards"] = categoryList
     answers["data"]["unstructured"]["presenters"] = presentersList
@@ -258,16 +283,16 @@ def getWinner(tweets, nominees, notes):
     winner = predictWinner(countDict, nominees, notes)
     return (winner, feelings)
 
-def getPresenters(tweets, noms):
+def getPresenters(tweets, noms, category):
     """
     Returns the predicted presenters according to given
     category relevant tweets
     """
-    badwords = ["Golden Globes"] + noms
+    badwords = ["Golden Globes"] + noms + category
     uniqueTweets = removeDuplicates(tweets)
     
     presTweets = JF.hardfiltertweets(uniqueTweets, presentersKeywords, [])
-    print len(presTweets)
+
     wordDict = JF.buildworddict(presTweets, exclude)
     nameList = JF.buildnamedict(presTweets, badwords)
 
@@ -304,28 +329,27 @@ def splitTweets (category, tweets, catName):
     """
     keywords = []
     listTweets = []
-    keywords = buildCategoryKeywords(category.name)
 
-    if (category.subcats == []):    
+    if (category.subcats == []):
+        keywords = buildCategoryKeywords(category.name)
         badwords = []
+        
         for word in globalBadWords:
             if word not in keywords:
                 badwords = badwords + [word]
                 
-        print keywords
-        retTweets = JF.softfiltertweets(tweets, keywords, badwords, 0.5)
+        retTweets = JF.softfiltertweets(tweets, keywords, badwords, 1.0)
         
         return [ {"Cats": catName, "Tweets": retTweets} ]
     else:
         badwords = []
-
-        relTweets = JF.softfiltertweets(tweets, keywords, badwords, 1)
+        keywords = buildCategoryKeywords(category.name)
+        
+        relTweets = JF.hardfiltertweets(tweets, keywords, badwords)
         
         for cat in category.subcats:
             listTweets = listTweets + splitTweets(cat, relTweets, catName + [cat.name])
 
-        print  "listTweets in else"
-        print len(listTweets)
         return listTweets
 
         
