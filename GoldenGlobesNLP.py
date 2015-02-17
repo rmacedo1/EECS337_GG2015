@@ -258,15 +258,15 @@ def getMetaData(dictionary):
     
     dictionary["metadata"]["hosts"] = dict()
     dictionary["metadata"]["hosts"]["method"] = "detected"
-    dictionary["metadata"]["hosts"]["method_description"] = "detected Hosts"
+    dictionary["metadata"]["hosts"]["method_description"] = "Hosts were detected using a series of filtering and weighted sorting of proper names. Names were built up using permutations of proper words."
 
     dictionary["metadata"]["nominees"] = dict()
     dictionary["metadata"]["nominees"]["method"] = "scraped"
-    dictionary["metadata"]["nominees"]["method_description"] = "scraped To get the nominees TEST"
+    dictionary["metadata"]["nominees"]["method_description"] = "BeautifulSoup module and our own script was used to extract data from website with Golden Globes data. Data was organized into a dictionary."
 
     dictionary["metadata"]["awards"] = dict()
     dictionary["metadata"]["awards"]["method"] = "scraped"
-    dictionary["metadata"]["awards"]["method_description"] = "To scraped get the awards we"
+    dictionary["metadata"]["awards"]["method_description"] = "BeautifulSoup module and our own script was used to extract data from website with Golden Globes data. Data was organized into a dictionary."
 
     return dictionary    
 
