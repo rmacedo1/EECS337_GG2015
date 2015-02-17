@@ -81,7 +81,7 @@ def interface(dictionary):
 				screen.addstr(17, 5, "Dominant Emotion: " + str(dictionary[awards[x-ord('a')]]["Sentiment"]["Dominant emotion"]["Name"]))
 				arr = []
 				if(len(dictionary[awards[x-ord('a')]]["Sentiment"]["Dominant emotion"]["Emojis"])
-				for w in range(0, min(len(dictionary[awards[x-ord('a')]]["Sentiment"]["Dominant emotion"]["Emojis"],5))):
+				for w in range(0, min(len(dictionary[awards[x-ord('a')]]["Sentiment"]["Dominant emotion"]["Emojis"]),5)):
 					arr.append(dictionary[awards[x-ord('a')]]["Sentiment"]["Dominant emotion"]["Emojis"][w])
 				screen.addstr(18, 5, "Most Popular Emojis: " + " ".join(arr).encode("utf-8"))
 				screen.addstr(22, 2, "1 - Hosts   2 - Awards, Page 1   3 - Awards, Page 2   4 - Exit")
