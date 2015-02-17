@@ -18,9 +18,10 @@ def strip(str):
 class ImproperYearException(Exception):
 	pass
 
-def scrapeResultsforYear(year="2013", toFile=True):
-	if int(year) < 1943 or int(year) > 2014:
+def scrapeResultsforYear(EECS332Year="2013", toFile=True):
+	if int(EECS332Year) < 1944 or int(EECS332Year) > 2014:
 		raise ImproperYearException("Year must be between 1943 and 2013")
+	year = int(EECS332Year) - 1 	# url convention
 		
 	ggurl = "http://www.hfpa.org/browse/?param=/year/" + str(year)
 
@@ -70,7 +71,7 @@ def scrapeResultsforYear(year="2013", toFile=True):
 		})
 
 	if toFile:
-		with open('categories_nominees_winners_' + str(year) + '.json', 'w') as outfile:
+		with open('categories_nominees_winners_' + str(EECS332Year) + '.json', 'w') as outfile:
 			json.dump({"Awards": awards}, outfile);
 
 	return {"Awards": awards};
