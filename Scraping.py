@@ -70,7 +70,7 @@ def scrapeResultsforYear(year="2013", toFile=True):
 		})
 
 	if toFile:
-		with open('categories_nominees_winners_' + year + '.json', 'w') as outfile:
+		with open('categories_nominees_winners_' + str(year) + '.json', 'w') as outfile:
 			json.dump({"Awards": awards}, outfile);
 
 	return {"Awards": awards};

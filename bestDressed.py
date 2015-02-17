@@ -31,6 +31,7 @@ def main():
 	c = NB.classifyTweets2(tweets[:1000], processor, classifier, True)
 
 	print len(c)
+	print processor(tweets[0])
 
 	wordDict = JF.buildworddict(c, GG.exclude)
 	nameList = JF.buildnamedict(c, [])
