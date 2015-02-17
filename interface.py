@@ -74,7 +74,7 @@ def interface(dictionary):
 					screen.addstr(y + 5, 5, dictionary[awards[x-ord('a')]]["Presenters"][y])
 				screen.addstr(8, 2, "Nominees:")
 				for z in range(0, len(dictionary[awards[x-ord('a')]]["Nominees"])):
-					screen.addstr(z + 9, 5, dictionary[awards[x-ord('a')]]["Nominees"][z])
+					screen.addstr(z + 9, 5, dictionary[awards[x-ord('a')]]["Nominees"][z].encode("utf-8"))
 				screen.addstr(15, 2, "Sentiment:")
 				screen.addstr(16, 5, "Positive:Negative -- " + str(dictionary[awards[x-ord('a')]]["Sentiment"]["Positivity score"]))
 				screen.addstr(17, 5, "Dominant Emotion: " + str(dictionary[awards[x-ord('a')]]["Sentiment"]["Dominant emotion"]["Name"]))
