@@ -12,8 +12,14 @@ def hardfiltertweets(tweets,goodwords,badwords):
 def softfiltertweets(tweets,goodwords,badwords,w):
 	goodcount = len(goodwords)
 	badcount = len(badwords)
-	return [tweet for tweet in tweets if (badcount*sum(tweet.count(x) for x in goodwords) - w*goodcount*sum(tweet.count(x) for x in badwords)) >= 0]
-
+	results = []
+	for tweet in tweets:
+		gweight = sum([tweet.count(x) for x in goodwords])/float(goodcount) if goodcount > 0 else 0
+		bweight = w*(sum([tweet.count(x) for x in badwords])/float(badcount)) if badcount > 0 else 0
+		if (gweight - bweight) > 0:
+			results = results + [tweet]
+	return results
+	
 def buildworddict(tweets,badwords):
 	namedict = dict()
 	for tweet in tweets:
