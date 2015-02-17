@@ -21,8 +21,8 @@ def interface(dictionary):
 	screen.border(0)
 	screen.addstr(2, 2, "Please enter a number...")
 	screen.addstr(4, 4, "1 - Hosts")
-	screen.addstr(5, 4, "2 - Awards, Motion Picture")
-	screen.addstr(6, 4, "3 - Awards, Televison")
+	screen.addstr(5, 4, "2 - Awards, Page 1")
+	screen.addstr(6, 4, "3 - Awards, Page 2")
 	screen.addstr(7, 4, "4 - Exit")
 	screen.refresh()
 
@@ -35,7 +35,7 @@ def interface(dictionary):
 			screen.border(0)
 			for y in range(0, len(hosts)):
 				screen.addstr(y + 1, 2, hosts[y])
-			screen.addstr(22, 2, "2 - Awards, Motion Picture    3 - Awards, Televison    4 - Exit")
+			screen.addstr(22, 2, "2 - Awards, Page 1    3 - Awards, Page 2    4 - Exit")
 			screen.refresh()
 			x = 0
 		if x == ord('2') or x == "awards1":
@@ -43,7 +43,7 @@ def interface(dictionary):
 			screen.border(0)
 			for z in range(0, 14):
 				screen.addstr(z + 1, 2, str(chr(ord('a') + z)) + " - " + awards[z])
-			screen.addstr(22, 2, "1 - Hosts    3 - Awards, Television    4 - Exit")
+			screen.addstr(22, 2, "1 - Hosts    3 - Awards, Page 2    4 - Exit")
 			screen.refresh()
 			lastAwardPress = 2
 		if x == ord('3') or x == "awards2":
@@ -51,7 +51,7 @@ def interface(dictionary):
 			screen.border(0)
 			for z in range(14, len(awards)):
 				screen.addstr(z - 13, 2, str(chr(ord('a') + z)) + " - " + awards[z])
-			screen.addstr(22, 2, "1 - Hosts    2 - Awards, Motion Picture    4 - Exit")
+			screen.addstr(22, 2, "1 - Hosts    2 - Awards, Page 1    4 - Exit")
 			screen.refresh()
 			lastAwardPress = 3
 		if x == ord('2') or x == ord('3') or x == "awards1" or x == "awards2":
@@ -80,10 +80,11 @@ def interface(dictionary):
 				screen.addstr(16, 5, "Positive:Negative -- " + str(dictionary[awards[x-ord('a')]]["Sentiment"]["Positivity score"]))
 				screen.addstr(17, 5, "Dominant Emotion: " + str(dictionary[awards[x-ord('a')]]["Sentiment"]["Dominant emotion"]["Name"]))
 				arr = []
-				for w in range(0, 5):
+				if(len(dictionary[awards[x-ord('a')]]["Sentiment"]["Dominant emotion"]["Emojis"])
+				for w in range(0, min(len(dictionary[awards[x-ord('a')]]["Sentiment"]["Dominant emotion"]["Emojis"],5))):
 					arr.append(dictionary[awards[x-ord('a')]]["Sentiment"]["Dominant emotion"]["Emojis"][w])
 				screen.addstr(18, 5, "Most Popular Emojis: " + " ".join(arr).encode("utf-8"))
-				screen.addstr(22, 2, "1 - Hosts   2 - Awards, Motion Picture   3 - Awards, Television   4 - Exit")
+				screen.addstr(22, 2, "1 - Hosts   2 - Awards, Page 1   3 - Awards, Page 2   4 - Exit")
 				screen.refresh()
 
 
