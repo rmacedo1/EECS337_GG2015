@@ -12,7 +12,7 @@ from emojiProcessing import prepareEmojiLists
 from emojiProcessing import filterEmojis
 import sys
 from Scraping import scrapeResultsforYear
-import naiveBayesProcessing as nb
+#import naiveBayesProcessing as nb
 
 predictKeywords = ["think", "calling", "want", "predict", "predictions", "if", "hoping",
                    "hope", "which", "Which", "Calling", "Think", "who", "Who", "Want",
@@ -60,7 +60,10 @@ def main():
 
 
 def loadParsedTweets(filename):
-
+    """
+    Takes a json file name and extracts a list of tweets. The tweets are then
+    tokenized and a list of parsed tweets is returned.
+    """
     try:
         with open(filename) as fl:
             jsonObj = json.load(fl)
@@ -78,7 +81,6 @@ def getData(filename):
     """input: filename of the json object with tweets
     output: a list of list of tokenized tweets
     """
-    
     tweets = loadParsedTweets(filename);
 
     # Try to figure out which scraped results to use
@@ -193,13 +195,8 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
             noms = x[1]
 
         #determine winners and presenters
-        #print "length of tweets is"
-        #print len(x[0]["Tweets"])
         (winner, feelings) = getWinner(x[0]["Tweets"], noms, notes)
         presenters = getPresenters(x[0]["Tweets"], noms, x[0]["Cats"])
-
-        #import tests
-        #print "Duplicates in fungoals: " + str(tests.checkForDuplicates(feelings["Positive"]))
 
         #Prepare fungoals
         funGoals[category] = {};
@@ -212,7 +209,7 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
         else:
             winnersList = winnersList + [noms[1]]
             
-        categoryList = categoryList + [category]
+        categoryList = categoryList + [category.lower()]
         presentersList = presentersList + presenters
         for nom in noms:
             if type(nom) is not dict:
@@ -237,15 +234,15 @@ def detectData(listDictionary, categories, nominees, catList, hosts):
         dictionary[category]["Nominees"] = noms
         dictionary[category]["Sentiment"] = feelings;
 
-        answers["data"]["structured"][category] = dict()
-        answers["data"]["structured"][category]["Nominees"] = nomsOnly
+        answers["data"]["structured"][category.lower()] = dict()
+        answers["data"]["structured"][category.lower()]["nominees"] = nomsOnly
         
         if winner is not None:
-            answers["data"]["structured"][category]["Winner"] = winner
+            answers["data"]["structured"][category.lower()]["winner"] = winner
         else:
-            answers["data"]["structured"][category]["Winner"] = noms[1]
+            answers["data"]["structured"][category.lower()]["winner"] = noms[1]
             
-        answers["data"]["structured"][category]["Presenters"] = presenters
+        answers["data"]["structured"][category.lower()]["presenters"] = presenters
     
     answers["data"]["unstructured"]["winners"] = winnersList
     answers["data"]["unstructured"]["awards"] = categoryList
@@ -258,18 +255,33 @@ def getMetaData(dictionary):
     dictionary["metadata"] = dict()
 
     dictionary["metadata"]["year"] = gYear
+    dictionary["metadata"]["names"] = dict()
+    dictionary["metadata"]["mappings"] =dict()
     
-    dictionary["metadata"]["hosts"] = dict()
-    dictionary["metadata"]["hosts"]["method"] = "detected"
-    dictionary["metadata"]["hosts"]["method_description"] = "Hosts were detected using a series of filtering and weighted sorting of proper names. Names were built up using permutations of proper words."
+    dictionary["metadata"]["names"]["hosts"] = dict()
+    dictionary["metadata"]["names"]["hosts"]["method"] = "detected"
+    dictionary["metadata"]["names"]["hosts"]["method_description"] = "Hosts were detected using a series of filtering and weighted sorting of proper names. Names were built up using permutations of proper words."
 
-    dictionary["metadata"]["nominees"] = dict()
-    dictionary["metadata"]["nominees"]["method"] = "scraped"
-    dictionary["metadata"]["nominees"]["method_description"] = "BeautifulSoup module and our own script was used to extract data from website with Golden Globes data. Data was organized into a dictionary."
+    dictionary["metadata"]["names"]["nominees"] = dict()
+    dictionary["metadata"]["names"]["nominees"]["method"] = "scraped"
+    dictionary["metadata"]["names"]["nominees"]["method_description"] = "BeautifulSoup module and our own script was used to extract data from website with Golden Globes data. Data was organized into a dictionary."
 
-    dictionary["metadata"]["awards"] = dict()
-    dictionary["metadata"]["awards"]["method"] = "scraped"
-    dictionary["metadata"]["awards"]["method_description"] = "BeautifulSoup module and our own script was used to extract data from website with Golden Globes data. Data was organized into a dictionary."
+    dictionary["metadata"]["names"]["awards"] = dict()
+    dictionary["metadata"]["names"]["awards"]["method"] = "scraped"
+    dictionary["metadata"]["names"]["awards"]["method_description"] = "BeautifulSoup module and our own script was used to extract data from website with Golden Globes data. Data was organized into a dictionary."
+
+    dictionary["metadata"]["names"]["presenters"] = dict()
+    dictionary["metadata"]["names"]["presenters"]["method"] = "detected"
+    dictionary["metadata"]["names"]["presenters"]["method_description"] = "Presenters were detected using our sorting and filtering methods."
+
+
+    dictionary["metadata"]["mappings"]["nominees"] = dict()
+    dictionary["metadata"]["mappings"]["nominees"]["method"] = "scraped"
+    dictionary["metadata"]["mappings"]["nominees"]["method_description"] = "The names were mapped to awards during the scrapping of the data."
+
+    dictionary["metadata"]["mappings"]["presenters"] = dict()
+    dictionary["metadata"]["mappings"]["presenters"]["method"] = "detected"
+    dictionary["metadata"]["mappings"]["presenters"]["method_description"] = "The presenters were mapped to awards using our filters and kewords."
 
     return dictionary    
 
@@ -401,8 +413,6 @@ def predictWinner(namedict, noms, notes):
     
     Jake's winner predictor function
     """
-    count = 20
-    
     for word in sorted(namedict, key=namedict.get, reverse=True):
         for name in noms:
             if word in name:
