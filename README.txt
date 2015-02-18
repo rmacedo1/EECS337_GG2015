@@ -2,7 +2,11 @@
 Team 2, Golden Globes Assignment
 Kristin Funch, Rosio Macedo, Luke Olney, Jacob Samson
 
-To run, enter the command “python GoldenGlobesNLP.py [filename] [outfile]”, where filename is the json file containing tweets for the year you would like analyzed and outfile is the name of the file where the answers where be dumped. If an outfile is not given, the name of the output file will be "answers.json".
+To run, navigate to the EECS337_GG2015 directory and enter the command “python GoldenGlobesNLP.py [filename] [outfile]”, where filename is the json file containing tweets for the year you would like analyzed and outfile is the name of the file where the answers where be dumped. If an outfile is not given, the name of the output file will be "answers.json".
+
+This routine will also give both the results for our sentiment analysis (as funGoals.json). 
+
+To run the text interface, run "python interface.py interfaceDict.json".
 
 Our project depends on the json, nltk, re, curses, BeautifulSoup, locale, urllib2, dill and subprocess libraries.
 
