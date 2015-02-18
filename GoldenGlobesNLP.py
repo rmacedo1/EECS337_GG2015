@@ -34,7 +34,7 @@ exclude = ["Golden", "Globes", "RT", "Best", "GoldenGlobes", "The", "For",
            "Winner", "Supporting", "Globe", "Or", "At", "I", "G", "And", "We",
            "Of", "Film"]
 
-globalBadWords = ["Supporting", "Actors", "Actress"]
+globalBadWords = ["Supporting", "Actor", "Actress"]
 
 hostKeywords = ["hosts", "Hosts", "hosting", "Hosting"]
 
