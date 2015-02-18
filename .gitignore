@@ -2,10 +2,9 @@
 gg15mini.json
 gg2013.json
 wordList.json
+gg15trimmed.json
 
 readInTweets.py
 
-Category.pyc
-
 *.pyc
-gg15trimmed.json
+
