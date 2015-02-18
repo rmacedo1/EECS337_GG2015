@@ -2,7 +2,7 @@
 Team 2, Golden Globes Assignment
 Kristin Funch, Rosio Macedo, Luke Olney, Jacob Samson
 
-To run, enter the command “python GoldenGlobesNLP.py [filename]”, where filename is the json file containing tweets for the year you would like analyzed.
+To run, enter the command “python GoldenGlobesNLP.py [filename] [outfile]”, where filename is the json file containing tweets for the year you would like analyzed and outfile is the name of the file where the answers where be dumped. If an outfile is not given, the name of the output file will be "answers.json".
 
 Our project depends on the json, nltk, re, curses, BeautifulSoup, locale, urllib2, dill and subprocess libraries.
 

@@ -43,13 +43,16 @@ gYear = 0
 def main():
     try:
         filename = sys.argv[1]
+        outfile = "answers.json"
+        if len(sys.argv) > 2:
+            outfile = sys.argv[2]
 
         print "Loading tweets"
         (parsedTweets, categories, nominees, catList) = loadTweetsCategoriesNominees(filename)
         print "Doing analysis"
         (answers, interfaceDict, funGoals) = searchCorpus(parsedTweets, categories, nominees, catList)
 
-        with open("answers.json", "w+") as file:
+        with open(outfile, "w+") as file:
             json.dump(answers, file)
         with open("interfaceDict.json", "w+") as file:
             json.dump(interfaceDict, file)
